@@ -1,2 +1,3 @@
-# rxcollection-subscriber
-Data suckers for RxCollections that react on criteria change
+# RxCollection Subscriber
+
+Ready to rednder, data-suckers for RxCollections that react on criteria change.
