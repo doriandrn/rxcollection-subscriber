@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": true,
+    "declarationDir": "types",
+    "declaration": true,
+    "target": "es6",
+    "module": "esnext",
+    "lib": [
+      "esnext",
+      "es2015"
+    ],
+    "baseUrl": "src",
+    "paths": {
+
+    },
+    "types": [
+      "node",
+      "debug",
+      "jest",
+      "faker"
+    ],
+    "strict": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "isolatedModules": false
+  },
+  "exclude": [
+    "dist/**/*",
+    "node_modules/*"
+  ]
+}
