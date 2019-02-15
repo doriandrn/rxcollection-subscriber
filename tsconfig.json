@@ -17,12 +17,9 @@
       "es2015"
     ],
     "baseUrl": "src",
-    "paths": {
-
-    },
+    "paths": { },
     "types": [
       "node",
-      "debug",
       "jest",
       "faker"
     ],

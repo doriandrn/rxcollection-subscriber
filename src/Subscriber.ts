@@ -1,6 +1,12 @@
 import { RxCollection, RxDocument } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
-import delay from './helpers/delay';
+
+const delay = function (value: number) {
+  return new Promise(resolve =>
+    setTimeout(() => resolve(), value)
+  )
+}
+
 
 /**
  * Single RXCollection subscriber interface

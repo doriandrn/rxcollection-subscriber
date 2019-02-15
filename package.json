@@ -15,7 +15,9 @@
     "@types/node": "^11.9.4",
     "faker": "^4.1.0",
     "jest": "^24.1.0",
+    "pouchdb-adapter-memory": "^7.0.0",
     "rxdb": "^8.0.5",
+    "rxjs": "^6.4.0",
     "ts-jest": "^23.10.5",
     "typescript": "^3.3.3"
   }
