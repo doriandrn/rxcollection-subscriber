@@ -4,7 +4,6 @@ import faker from 'faker'
 
 import Subscriber from './Subscriber'
 
-
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max));
 }
@@ -52,9 +51,7 @@ describe('RxCollection Subscriber', () => {
     await insertNitems.call(collection, 10)
   })
 
-  afterAll(async () => {
-    await db.destroy()
-  })
+  afterAll(async () => { await db.destroy() })
 
   describe('constructor', () => {
     describe('options', () => {
