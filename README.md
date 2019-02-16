@@ -30,7 +30,7 @@ console.log(sub1.selectedDoc)
 | criteria | Criteria | initial criteria to subscribe with. also applies to lazy subscribers | `{ limit: 25, index: 0, sort: {}, filter: undefined }`
 | multipleSelect | bool | allows multiple ids & documents to be selected | false
 | lazy | bool | does not subscribe on construct | false
-| progressivePagin | bool | whenever the `index` key in criteria changes / increases, results will not be paginated but appended to previous | false
+| progressivePaging | bool | whenever the `index` key in criteria changes / increases, results will not be paginated but appended to previous | false
 | autoSelectOnCRUD | bool | if a new document gets added / removed from the collection, it'll immediately get selected | false
 
 ## Contribute
