@@ -7,7 +7,6 @@ const delay = function (value: number) {
   )
 }
 
-
 /**
  * Single RXCollection subscriber interface
  *
@@ -61,9 +60,6 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   @observable selectedId ?: string | string[]
   @observable activeId ?: string
 
-  @computed get selected () { return this.selectedId }
-  @computed get active () { return this.activeId }
-
   @computed get ids () { return Object.keys(this.items) }
 
   @computed get items () {
@@ -99,16 +95,22 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     protected collection: RxCollection<N>,
     readonly options ?: SubscriberOptions
   ) {
+    let fireImmediately: boolean = true
+
+    if (options) {
+      const { multipleSelect, lazy } = options
+
+      if (multipleSelect)
+        this.selectedId = []
+
+      if (lazy)
+        fireImmediately = false
+    }
+
     // Register the reaction on criteria change
     reaction(() => ({ ...this.criteria }), (newC) => {
       this.kill = this.subscribe(toJS(newC))
-    }, { fireImmediately: true })
-
-    if (options) {
-      if (options.multipleSelect) {
-        this.selectedId = []
-      }
-    }
+    }, { fireImmediately })
   }
 
   /**
@@ -195,7 +197,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     return new Promise((resolve) => {
       reaction(() => this.fetching, (async (status) => {
         if (!status) {
-          await delay(50) // quite hacky, waits for @computeds to effect
+          await delay(50) // quite hacky, waits for @computeds to update
           resolve()
         }
       }))

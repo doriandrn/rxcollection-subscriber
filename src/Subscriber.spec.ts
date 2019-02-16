@@ -19,7 +19,6 @@ async function insertNitems (n: number) {
   }
 }
 
-
 const testCol: RxCollectionCreator = {
   name: 'dummies',
   schema: {
@@ -128,7 +127,7 @@ describe('RxCollection Subscriber', () => {
             })
 
             test('ok', () => {
-              expect(subscriber.selected).toEqual(expect.arrayContaining(toBeSelected))
+              expect(subscriber.selectedId).toEqual(expect.arrayContaining(toBeSelected))
             })
           })
 
@@ -276,9 +275,8 @@ describe('RxCollection Subscriber', () => {
       sub.select(oneRandomId)
     })
 
-    test('selectedId ', () => {
-      expect(sub.selected).toBeDefined()
-      expect(sub.selected).toEqual(oneRandomId)
+    test('.selectedId is the random chosen id', () => {
+      expect(sub.selectedId).toEqual(oneRandomId)
     })
 
     describe('.selectedDoc', () => {
