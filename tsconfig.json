@@ -26,10 +26,14 @@
     "strict": true,
     "sourceMap": true,
     "experimentalDecorators": true,
-    "isolatedModules": false
+    "isolatedModules": false,
+    "noEmit": true,
+    "noEmitOnError": true
   },
   "exclude": [
     "dist/**/*",
+    "types/**/*",
+    "**/*.spec.ts",
     "node_modules/*"
   ]
 }

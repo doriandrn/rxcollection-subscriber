@@ -2,7 +2,7 @@
 
 Ready to render, data-suckers for [RxCollection](https://rxdb.info/rx-collection.html)s that react on criteria change (the view model).
 
-If you're rather interested in hooking the functionality directly into RxDB, you should check the [rxdb-subs]() plugin.
+If you're rather interested in hooking the functionality directly into RxDB, you should check the [rxdb-subs](https://github.com/doriandrn/rxdb-subs) plugin.
 
 ## Usage
 
