@@ -86,9 +86,10 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   /**
    * Creates an instance of Subscriber.
    *
-   * @param {string} name - eg. 'registru'
-   * @param {Taxonomy} taxonomy
-   * @param {Criteriu} criteriu - initial sort / filter criteria if it shall not use the default one
+   * @param {string} name
+   * @param {RxCollection} collection
+   * @param {SubscriberOptions} options
+   *
    * @memberof Subscriber
    */
   constructor (
@@ -114,10 +115,10 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   }
 
   /**
-   * Observables changes wwhenever data changes
+   * Handles new documents received from RxCollection Subscription
    *
    * @private
-   * @param {RxDocument<any>[]} changes
+   * param {RxDocument<any>[]} changes
    * @memberof Subscriber
    */
   @action private handleSubscriptionData (changes: RxDocument<any>[]) {

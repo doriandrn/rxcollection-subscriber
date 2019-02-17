@@ -27,8 +27,6 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "isolatedModules": false,
-    "noEmit": true,
-    "noEmitOnError": true
   },
   "exclude": [
     "dist/**/*",
