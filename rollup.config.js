@@ -43,7 +43,7 @@ export default {
     }),
     builtins(),
     babel({ extensions }),
-    uglify()
+    // uglify()
   ],
 
   output: {

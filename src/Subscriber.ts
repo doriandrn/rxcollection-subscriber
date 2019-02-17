@@ -63,22 +63,27 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   @computed get ids () { return Object.keys(this.items) }
 
   @computed get items () {
+
     return Object.assign({},
       ...this.documents
-        .map(item => ({ [item._id]: item._data }))
+        .map(item => ({ [item[this.primaryPath]]: item._data }))
     )
   }
 
   @computed get selectedDoc () {
-    return this.documents.filter(doc => doc._id === this.selectedId)[0]
+    return this.documents.filter(doc => doc[this.primaryPath] === this.selectedId)[0]
   }
 
   @computed get editing () {
-    return this.documents.filter(doc => doc._id === this.activeId)[0]
+    return this.documents.filter(doc => doc[this.primaryPath] === this.activeId)[0]
   }
 
   @computed get length () {
     return this.ids.length
+  }
+
+  protected get primaryPath () {
+    return this.collection.schema.primaryPath || '_id'
   }
 
   kill : () => void = () => {}
@@ -136,12 +141,12 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
   /**
    * (re)Subscribes with given Criteria
-   * happens internaly when criteriu is changed
+   * happens internaly when criteria is changed
    *
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  subscribe (
+  protected subscribe (
     { limit, index, sort, filter }: Criteria
   ) {
     this.subscribeRequested()

@@ -1,6 +1,6 @@
 {
   "name": "rxcollection-subscriber",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Ready to render data-suckers for RxCollections (RxDB)",
   "main": "dist/index.js",
   "repository": "https://github.com/doriandrn/rxcollection-subscriber.git",
