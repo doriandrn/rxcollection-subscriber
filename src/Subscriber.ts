@@ -50,7 +50,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     limit: 25,
     index: 0,
     sort: {},
-    filter: undefined
+    filter: {}
   }
 
   @observable fetching: Boolean = false
@@ -142,7 +142,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @memberof Subscriber
    */
   subscribe (
-    { limit, index, sort, filter }: Criteria = toJS(this.criteria)
+    { limit, index, sort, filter }: Criteria
   ) {
     this.subscribeRequested()
     const { options } = this

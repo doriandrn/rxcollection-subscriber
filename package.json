@@ -1,7 +1,7 @@
 {
   "name": "rxcollection-subscriber",
-  "version": "1.0.3",
-  "description": "Ready to render data-sucker for RxCollections (RxDB)",
+  "version": "1.0.4",
+  "description": "Ready to render data-suckers for RxCollections (RxDB)",
   "main": "dist/index.js",
   "repository": "https://github.com/doriandrn/rxcollection-subscriber.git",
   "author": "Dorian Tudorache <dorian.snaz@gmail.com>",
