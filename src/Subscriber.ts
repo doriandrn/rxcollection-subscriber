@@ -142,7 +142,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @memberof Subscriber
    */
   subscribe (
-    { limit, index, sort, filter }: Criteria
+    { limit, index, sort, filter }: Criteria = toJS(this.criteria)
   ) {
     this.subscribeRequested()
     const { options } = this

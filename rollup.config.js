@@ -22,18 +22,7 @@ export default {
     'pouchdb-adapter-http',
     'rxdb',
     'rxjs',
-    'mobx',
-    // '@babel/**',
-    // '@babel/runtime/helpers/objectSpread',
-    // '@babel/runtime/helpers/defineProperty',
-    // '@babel/runtime/helpers/asyncToGenerator',
-    // '@babel/runtime/helpers/applyDecoratedDescriptor',
-    // '@babel/runtime/helpers/initializerWarningHelper',
-    // '@babel/runtime/regenerator',
-    // '@babel/runtime/helpers/toConsumableArray',
-    // '@babel/runtime/helpers/classCallCheck',
-    // '@babel/runtime/helpers/createClass',
-    // '@babel/runtime/helpers/initializerDefineProperty'
+    'mobx'
   ],
 
   plugins: [

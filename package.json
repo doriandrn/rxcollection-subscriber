@@ -1,10 +1,10 @@
 {
   "name": "rxcollection-subscriber",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Ready to render data-sucker for RxCollections (RxDB)",
   "main": "dist/index.js",
   "repository": "https://github.com/doriandrn/rxcollection-subscriber.git",
-  "author": "<dorian.snaz@gmail.com>",
+  "author": "Dorian Tudorache <dorian.snaz@gmail.com>",
   "license": "MIT",
   "scripts": {
     "build:types": "tsc -p tsconfig.json --noEmitOnError",
