@@ -5,7 +5,7 @@ import globals from 'rollup-plugin-node-globals'
 import { uglify } from 'rollup-plugin-uglify'
 
 import babel from 'rollup-plugin-babel'
-// import ts from 'rollup-plugin-typescript'
+import ts from 'rollup-plugin-typescript'
 
 import pkg from './package.json'
 
@@ -23,16 +23,17 @@ export default {
     'rxdb',
     'rxjs',
     'mobx',
-    '@babel/**',
-    '@babel/runtime/helpers/objectSpread',
-    '@babel/runtime/helpers/defineProperty',
-    '@babel/runtime/helpers/asyncToGenerator',
-    '@babel/runtime/helpers/applyDecoratedDescriptor',
-    '@babel/runtime/helpers/initializerWarningHelper',
-    '@babel/runtime/regenerator',
-    '@babel/runtime/helpers/toConsumableArray',
-    '@babel/runtime/helpers/classCallCheck',
-    '@babel/runtime/helpers/createClass'
+    // '@babel/**',
+    // '@babel/runtime/helpers/objectSpread',
+    // '@babel/runtime/helpers/defineProperty',
+    // '@babel/runtime/helpers/asyncToGenerator',
+    // '@babel/runtime/helpers/applyDecoratedDescriptor',
+    // '@babel/runtime/helpers/initializerWarningHelper',
+    // '@babel/runtime/regenerator',
+    // '@babel/runtime/helpers/toConsumableArray',
+    // '@babel/runtime/helpers/classCallCheck',
+    // '@babel/runtime/helpers/createClass',
+    // '@babel/runtime/helpers/initializerDefineProperty'
   ],
 
   plugins: [
@@ -45,13 +46,14 @@ export default {
       preferBuiltins: false
     }),
 
+    ts(),
     commonjs({
       include: ['node_modules/**/*'],
       ignore: ["conditional-runtime-dependency"],
       namedExports:  {}
     }),
-    babel({ extensions, externalHelpers: true, runtimeHelpers: true }),
     builtins(),
+    babel({ extensions }),
     uglify()
   ],
 

@@ -1,6 +1,6 @@
 {
   "name": "rxcollection-subscriber",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Ready to render data-sucker for RxCollections (RxDB)",
   "main": "dist/index.js",
   "repository": "https://github.com/doriandrn/rxcollection-subscriber.git",
@@ -23,6 +23,7 @@
     "@babel/plugin-transform-runtime": "^7.2.0",
     "@babel/preset-env": "^7.3.1",
     "@babel/preset-typescript": "^7.3.3",
+    "@babel/runtime": "^7.3.1",
     "@types/faker": "^4.1.5",
     "@types/jest": "^24.0.5",
     "@types/node": "^11.9.4",
