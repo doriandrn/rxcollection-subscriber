@@ -102,7 +102,7 @@ var delay = function delay(value) {
  * refreshes data on criteria change
  *
  * @class Subscriber
- * @implements {LodgerSubscriber}
+ * @implements {RxSubscriber}
  */
 
 
@@ -125,13 +125,13 @@ function () {
 
     this.collection = collection;
     this.options = options;
-    this.documents = []; // main data holder, reactive by itself
+    this.documents = []; // documents holder
 
     this.criteria = {
       limit: 25,
       index: 0,
       sort: {},
-      filter: {}
+      filter: undefined
     };
     this.fetching = false;
     this.subscribed = false;
@@ -324,6 +324,8 @@ function () {
 
   return Subscriber;
 }();
+
+__decorate([mobx.observable], Subscriber.prototype, "documents", void 0);
 
 __decorate([mobx.observable], Subscriber.prototype, "criteria", void 0);
 

@@ -1,11 +1,11 @@
 {
   "name": "rxcollection-subscriber",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Ready to render data-suckers for RxCollections (RxDB)",
   "main": "dist/index.js",
   "repository": "https://github.com/doriandrn/rxcollection-subscriber.git",
   "author": "Dorian Tudorache <dorian.snaz@gmail.com>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "build:types": "tsc -p tsconfig.json --noEmitOnError",
     "build:docs": "rm -R ./dist/docs/ && mkdir ./dist/docs/ && jsdoc2md --files 'src/**/*.ts' --configure jsdoc2md.json > dist/docs/index.md",

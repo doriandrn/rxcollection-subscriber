@@ -41,16 +41,16 @@ export type Criteria = {
  * refreshes data on criteria change
  *
  * @class Subscriber
- * @implements {LodgerSubscriber}
+ * @implements {RxSubscriber}
  */
 export default class Subscriber<N extends string> implements RxSubscriber {
-  private documents: RxDocument<N>[] = [] // main data holder, reactive by itself
+  @observable private documents: RxDocument<N>[] = [] // documents holder
 
   @observable criteria: Criteria = {
     limit: 25,
     index: 0,
     sort: {},
-    filter: {}
+    filter: undefined
   }
 
   @observable fetching: Boolean = false
