@@ -114,7 +114,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     }
 
     // Register the reaction on criteria change
-    reaction(() => ({ ...this.criteria }), (newC) => {
+    reaction(() => ({ ...this.criteria }), () => {
       this.kill = this.subscribe()
     }, { fireImmediately })
   }
