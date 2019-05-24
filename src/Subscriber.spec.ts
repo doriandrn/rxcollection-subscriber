@@ -130,6 +130,12 @@ describe('RxCollection Subscriber', () => {
 
         })
       })
+
+      describe('.criteria', () => {
+        test('matches its keys on init', () => {
+
+        })
+      })
     })
   })
 

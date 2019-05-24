@@ -23,7 +23,8 @@ interface RxSubscriber {
 }
 
 type SubscriberOptions = {
-  lazy ?: boolean
+  lazy ?: boolean,
+  criteria ?: Criteria,
   progressivePaging ?: boolean
   multipleSelect ?: boolean
   autoSelectOnCRUD ?: boolean // whenever an items is added / updated -> it's id gets selected
@@ -44,7 +45,7 @@ export type Criteria = {
  * @implements {RxSubscriber}
  */
 export default class Subscriber<N extends string> implements RxSubscriber {
-  @observable private documents: RxDocument<N>[] = [] // documents holder
+  @observable private documents: RxDocument<N>[] = []
 
   @observable criteria: Criteria = {
     limit: 25,
@@ -63,7 +64,6 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   @computed get ids () { return Object.keys(this.items) }
 
   @computed get items () {
-
     return Object.assign({},
       ...this.documents
         .map(item => ({ [item[this.primaryPath]]: item._data }))
@@ -115,28 +115,22 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
     // Register the reaction on criteria change
     reaction(() => ({ ...this.criteria }), (newC) => {
-      this.kill = this.subscribe(toJS(newC))
+      this.kill = this.subscribe()
     }, { fireImmediately })
   }
 
-  /**
-   * Handles new documents received from RxCollection Subscription
-   *
-   * @private
-   * param {RxDocument<any>[]} changes
-   * @memberof Subscriber
-   */
-  @action private handleSubscriptionData (changes: RxDocument<any>[]) {
-    if (!this.subscribed) this.subscribed = true
-
-    this.documents = changes
-
-    // defer this a little bit for user friendliness &/or transitions
-    setTimeout(() => { this.fetching = false }, 100)
+  @computed get filter () {
+    return this.criteria.filter
   }
 
-  @action private subscribeRequested () {
-    this.fetching = true
+  @computed get paging () {
+    const { options } = this
+    const limit = Number(this.criteria.limit)
+    const index = Number(this.criteria.index)
+
+    return options && options.progressivePaging ?
+      (limit + limit * index) :
+      limit
   }
 
   /**
@@ -146,26 +140,16 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  protected subscribe (
-    { limit, index, sort, filter }: Criteria
-  ) {
-    this.subscribeRequested()
-    const { options } = this
-    limit = Number(limit)
-    index = Number(index)
+  protected async subscribe () {
+    this.fetching = true
 
-    const paging = options && options.progressivePaging ?
-      (limit + limit * index) :
-      limit
+    this.documents = await this.collection
+      .find(this.filter)
+      .limit(this.paging)
+      .sort(toJS(this.criteria.sort))
+      .exec()
 
-    const { unsubscribe } = this.collection
-      .find(filter)
-      .limit(paging)
-      .sort(toJS(sort))
-      .$
-      .subscribe(changes => this.handleSubscriptionData(changes))
-
-    return unsubscribe
+    this.fetching = false
   }
 
   /**
