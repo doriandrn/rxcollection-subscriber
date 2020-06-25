@@ -374,4 +374,4 @@ __decorate([mobx.action], Subscriber.prototype, "select", null);
 
 __decorate([mobx.action], Subscriber.prototype, "edit", null);
 
-module.exports = Subscriber;
+if (module) module.exports = Subscriber;
