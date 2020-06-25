@@ -102,6 +102,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     readonly options ?: SubscriberOptions
   ) {
     let fireImmediately: boolean = true
+    this.kill = () => {}
 
     if (options) {
       const { multipleSelect, lazy } = options
@@ -114,8 +115,8 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     }
 
     // Register the reaction on criteria change
-    reaction(() => ({ ...this.criteria }), () => {
-      this.kill = this.subscribe()
+    reaction(() => ({ ...this.criteria }), async () => {
+      this.kill = await this.subscribe()
     }, { fireImmediately })
   }
 
@@ -150,6 +151,8 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       .exec()
 
     this.fetching = false
+
+    return this.collection.destroy.bind(this.collection)
   }
 
   /**

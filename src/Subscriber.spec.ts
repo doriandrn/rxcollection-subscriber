@@ -1,4 +1,4 @@
-import { RxCollection, isRxDocument, RxDatabase, create, plugin, RxCollectionCreator } from 'rxdb'
+import { RxCollection, isRxDocument, RxDatabase, createRxDatabase, addRxPlugin, RxCollectionCreator } from 'rxdb'
 import memoryAdapter from 'pouchdb-adapter-memory'
 import faker from 'faker'
 
@@ -18,21 +18,17 @@ async function insertNitems (n: number) {
   }
 }
 
-const testCol: RxCollectionCreator = {
+const collectionCreatorFixture: RxCollectionCreator = {
   name: 'dummies',
   schema: {
     title: 'dummy',
     version: 0,
     type: 'object',
     properties: {
-      name: {
-        type: 'string',
-        index: true
-      },
-      dummyLevel: {
-        type: 'number'
-      }
-    }
+      name: { type: 'string' },
+      dummyLevel: { type: 'number' }
+    },
+    indexes: ['name']
   }
 }
 
@@ -41,17 +37,38 @@ describe('RxCollection Subscriber', () => {
   let collection: RxCollection
 
   beforeAll(async () => {
-    plugin(memoryAdapter)
-    db = await create({
-      name :'testdb',
-      adapter: 'memory',
-      ignoreDuplicate: true
-    })
-    collection = await db.collection(testCol)
-    await insertNitems.call(collection, 10)
+    try {
+      addRxPlugin(memoryAdapter)
+    } catch (e) {
+      console.error('could not add adapter / plugin', e)
+    }
+
+    try {
+      db = await createRxDatabase({
+        name :'testdb',
+        adapter: 'memory',
+        ignoreDuplicate: true
+      })
+    } catch (e) {
+      console.error('could not create DB', e)
+    }
+
+    try {
+      collection = await db.collection(collectionCreatorFixture)
+    } catch (e) {
+      console.error('could not make collection', e)
+    }
+
+    try {
+      await insertNitems.call(collection, 10)
+    } catch (e) {
+      console.error('could not insert', e)
+    }
   })
 
-  afterAll(async () => { await db.destroy() })
+  afterAll(async () => {
+    await db.destroy()
+  })
 
   describe('constructor', () => {
     describe('options', () => {
@@ -90,16 +107,15 @@ describe('RxCollection Subscriber', () => {
 
         beforeAll(async () => {
           subscriber = new Subscriber(collection, { multipleSelect: true })
-          await insertNitems.call(collection, 10)
           await subscriber.updates
           oneRandomId = subscriber.ids[getRandomInt(9)]
         })
 
         afterAll(() => subscriber.kill())
 
-        describe('.selectedIds', () => {
-          test('is array', () => {
-            expect(subscriber.selectedId.length).toEqual(0)
+        describe('.selectedId', () => {
+          test('is empty array', () => {
+            expect(subscriber.selectedId?.length).toEqual(0)
           })
         })
 
@@ -147,6 +163,7 @@ describe('RxCollection Subscriber', () => {
       subscriber = new Subscriber(collection)
       const item = await collection.insert({ name: 'gigi', dummyLevel: 5 })
       _id = item._id
+      subscriber.criteria = { limit: 50 }
       await subscriber.updates
     })
 
