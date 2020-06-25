@@ -7,3 +7,6 @@ log.txt
 
 # yarn stff
 yarn.lock
+
+# vsc conf
+.vscode
