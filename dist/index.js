@@ -1,6 +1,6 @@
 'use strict';
 
-var mobx = require('mobx');
+if (!mobx) var mobx = require('mobx');
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -40,38 +40,51 @@ function _defineProperty(obj, key, value) {
 }
 
 function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
 }
 
 function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-    return arr2;
-  }
+  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
 }
 
 function _iterableToArray(iter) {
-  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+}
+
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+  return arr2;
 }
 
 function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance");
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
 /*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
+Copyright (c) Microsoft Corporation.
 
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
 
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
 
 function __decorate(decorators, target, key, desc) {
@@ -82,10 +95,11 @@ function __decorate(decorators, target, key, desc) {
 }
 
 function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 }
@@ -106,9 +120,7 @@ var delay = function delay(value) {
  */
 
 
-var Subscriber =
-/*#__PURE__*/
-function () {
+var Subscriber = /*#__PURE__*/function () {
   /**
    * Creates an instance of Subscriber.
    *
@@ -125,8 +137,7 @@ function () {
 
     this.collection = collection;
     this.options = options;
-    this.documents = []; // documents holder
-
+    this.documents = [];
     this.criteria = {
       limit: 25,
       index: 0,
@@ -140,6 +151,8 @@ function () {
 
     var fireImmediately = true;
 
+    this.kill = function () {};
+
     if (options) {
       var multipleSelect = options.multipleSelect,
           lazy = options.lazy;
@@ -150,38 +163,33 @@ function () {
 
     mobx.reaction(function () {
       return Object.assign({}, _this.criteria);
-    }, function (newC) {
-      _this.kill = _this.subscribe(mobx.toJS(newC));
+    }, function () {
+      return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.subscribe();
+
+              case 2:
+                this.kill = _context.sent;
+
+              case 3:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
     }, {
       fireImmediately: fireImmediately
     });
   }
 
   _createClass(Subscriber, [{
-    key: "handleSubscriptionData",
+    key: "subscribe",
 
-    /**
-     * Handles new documents received from RxCollection Subscription
-     *
-     * @private
-     * param {RxDocument<any>[]} changes
-     * @memberof Subscriber
-     */
-    value: function handleSubscriptionData(changes) {
-      var _this2 = this;
-
-      if (!this.subscribed) this.subscribed = true;
-      this.documents = changes; // defer this a little bit for user friendliness &/or transitions
-
-      setTimeout(function () {
-        _this2.fetching = false;
-      }, 100);
-    }
-  }, {
-    key: "subscribeRequested",
-    value: function subscribeRequested() {
-      this.fetching = true;
-    }
     /**
      * (re)Subscribes with given Criteria
      * happens internaly when criteria is changed
@@ -189,28 +197,28 @@ function () {
      * @param {Criteriu} [criteriu]
      * @memberof Subscriber
      */
+    value: function subscribe() {
+      return __awaiter(this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                this.fetching = true;
+                _context2.next = 3;
+                return this.collection.find(this.filter).limit(this.paging).sort(mobx.toJS(this.criteria.sort)).exec();
 
-  }, {
-    key: "subscribe",
-    value: function subscribe(_ref) {
-      var _this3 = this;
+              case 3:
+                this.documents = _context2.sent;
+                this.fetching = false;
+                return _context2.abrupt("return", this.collection.destroy.bind(this.collection));
 
-      var limit = _ref.limit,
-          index = _ref.index,
-          sort = _ref.sort,
-          filter = _ref.filter;
-      this.subscribeRequested();
-      var options = this.options;
-      limit = Number(limit);
-      index = Number(index);
-      var paging = options && options.progressivePaging ? limit + limit * index : limit;
-
-      var _this$collection$find = this.collection.find(filter).limit(paging).sort(mobx.toJS(sort)).$.subscribe(function (changes) {
-        return _this3.handleSubscriptionData(changes);
-      }),
-          unsubscribe = _this$collection$find.unsubscribe;
-
-      return unsubscribe;
+              case 6:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
     }
     /**
      * (De)selects an item by it's id
@@ -248,28 +256,28 @@ function () {
   }, {
     key: "items",
     get: function get() {
-      var _this4 = this;
+      var _this2 = this;
 
       return Object.assign.apply(Object, [{}].concat(_toConsumableArray(this.documents.map(function (item) {
-        return _defineProperty({}, item[_this4.primaryPath], item._data);
+        return _defineProperty({}, item[_this2.primaryPath], item._data);
       }))));
     }
   }, {
     key: "selectedDoc",
     get: function get() {
-      var _this5 = this;
+      var _this3 = this;
 
       return this.documents.filter(function (doc) {
-        return doc[_this5.primaryPath] === _this5.selectedId;
+        return doc[_this3.primaryPath] === _this3.selectedId;
       })[0];
     }
   }, {
     key: "editing",
     get: function get() {
-      var _this6 = this;
+      var _this4 = this;
 
       return this.documents.filter(function (doc) {
-        return doc[_this6.primaryPath] === _this6.activeId;
+        return doc[_this4.primaryPath] === _this4.activeId;
       })[0];
     }
   }, {
@@ -283,27 +291,38 @@ function () {
       return this.collection.schema.primaryPath || '_id';
     }
   }, {
+    key: "filter",
+    get: function get() {
+      return this.criteria.filter;
+    }
+  }, {
+    key: "paging",
+    get: function get() {
+      var options = this.options;
+      var limit = Number(this.criteria.limit);
+      var index = Number(this.criteria.index);
+      return options && options.progressivePaging ? limit + limit * index : limit;
+    }
+  }, {
     key: "updates",
     get: function get() {
-      var _this7 = this;
+      var _this5 = this;
 
       return new Promise(function (resolve) {
         mobx.reaction(function () {
-          return _this7.fetching;
+          return _this5.fetching;
         }, function (status) {
-          return __awaiter(_this7, void 0, void 0,
-          /*#__PURE__*/
-          regeneratorRuntime.mark(function _callee() {
-            return regeneratorRuntime.wrap(function _callee$(_context) {
+          return __awaiter(_this5, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+            return regeneratorRuntime.wrap(function _callee3$(_context3) {
               while (1) {
-                switch (_context.prev = _context.next) {
+                switch (_context3.prev = _context3.next) {
                   case 0:
                     if (status) {
-                      _context.next = 4;
+                      _context3.next = 4;
                       break;
                     }
 
-                    _context.next = 3;
+                    _context3.next = 3;
                     return delay(50);
 
                   case 3:
@@ -312,10 +331,10 @@ function () {
 
                   case 4:
                   case "end":
-                    return _context.stop();
+                    return _context3.stop();
                 }
               }
-            }, _callee, this);
+            }, _callee3);
           }));
         });
       });
@@ -347,9 +366,9 @@ __decorate([mobx.computed], Subscriber.prototype, "editing", null);
 
 __decorate([mobx.computed], Subscriber.prototype, "length", null);
 
-__decorate([mobx.action], Subscriber.prototype, "handleSubscriptionData", null);
+__decorate([mobx.computed], Subscriber.prototype, "filter", null);
 
-__decorate([mobx.action], Subscriber.prototype, "subscribeRequested", null);
+__decorate([mobx.computed], Subscriber.prototype, "paging", null);
 
 __decorate([mobx.action], Subscriber.prototype, "select", null);
 
