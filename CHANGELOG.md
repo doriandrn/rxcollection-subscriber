@@ -1,3 +1,8 @@
+<a name="1.0.9"></a>
+1.0.9 (2020-06-25)
+
+- Browser version fix (test - wip)
+
 <a name="1.0.8"></a>
 1.0.8 (2020-06-25)
 
