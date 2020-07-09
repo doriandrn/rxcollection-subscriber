@@ -29,7 +29,7 @@ type SubscriberOptions = {
   progressivePaging ?: boolean
   multipleSelect ?: boolean
   autoSelectOnCRUD ?: boolean // whenever an items is added / updated -> it's id gets selected
-  fields: string[]
+  fields ?: string[]
 }
 
 export type Criteria = {
@@ -113,13 +113,21 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     this.kill = () => {}
 
     if (options) {
-      const { multipleSelect, lazy } = options
+      const { multipleSelect, lazy, criteria, fields } = options
 
       if (multipleSelect)
         this.selectedId = []
 
       if (lazy)
         fireImmediately = false
+
+      if (criteria)  {
+        Object.keys(criteria).forEach(key => this.criteria[key] = criteria[key])
+      }
+
+      if (fields) {
+
+      }
     }
 
     // Register the reaction on criteria change

@@ -148,8 +148,49 @@ describe('RxCollection Subscriber', () => {
       })
 
       describe('.criteria', () => {
-        test('matches its keys on init', () => {
+        let s
+        test('matches its keys on init', async () => {
+          const limit = 1
+          s = new Subscriber(collection, { criteria: { limit: 1 } })
+          await s.updates
 
+          expect(s.criteria.limit).toEqual(limit)
+          s.kill()
+        })
+      })
+
+      describe('.fields', () => {
+        let s
+
+        test('has default ones if undefined', async () => {
+          const fields = Object.keys(collection.schema.jsonSchema.properties).filter(k => k.indexOf('_') !== 0)
+          s = new Subscriber(collection, { fields })
+          await s.updates
+
+          expect(Object.keys(s.items[s.ids[0]]).filter(k => k.indexOf('_') !== 0)).toEqual(fields)
+
+          s.kill()
+        })
+
+        test('.items has only the indicated fields', async () => {
+          const fields = ['name']
+          s = new Subscriber(collection, { fields })
+          await s.updates
+
+          expect(Object.keys(s.items[s.ids[0]]).filter(k => k.indexOf('_') !== 0)).toEqual(fields)
+
+          s.kill()
+        })
+
+        test('throws if invalid field supplied', async () => {
+          const fields = ['name', 'unexistingField']
+          try {
+            s = new Subscriber(collection, { fields })
+            // await s.updates
+            // s.kill()
+          } catch (e) {
+            expect(e).toBeDefined()
+          }
         })
       })
     })
@@ -160,10 +201,9 @@ describe('RxCollection Subscriber', () => {
     let _id: string
 
     beforeAll(async () => {
-      subscriber = new Subscriber(collection)
+      subscriber = new Subscriber(collection, { criteria: { limit: 50 } })
       const item = await collection.insert({ name: 'gigi', dummyLevel: 5 })
       _id = item._id
-      // subscriber.criteria = { limit: 50 }
       await subscriber.updates
     })
 
