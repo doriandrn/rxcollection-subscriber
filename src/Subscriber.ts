@@ -1,6 +1,5 @@
-import { RxCollection, RxDocument } from 'rxdb'
+import { RxCollection, RxDocument, RxQuery } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
-import { spawn } from 'child_process'
 
 const delay = function (value: number) {
   return new Promise(resolve =>
@@ -18,9 +17,10 @@ interface RxSubscriber {
 
   select (id: string): RxDocument<any>
   edit (id: string): RxDocument<any>
+  render (opts: RxRenderOptions): void
 
-  subscribe (criteria ?: Criteria): Function // Subscription
-  kill (): void
+  // subscribe (criteria ?: Criteria): Function // Subscription
+  // kill (): void
 }
 
 type SubscriberOptions = {
@@ -29,6 +29,7 @@ type SubscriberOptions = {
   progressivePaging ?: boolean
   multipleSelect ?: boolean
   autoSelectOnCRUD ?: boolean // whenever an items is added / updated -> it's id gets selected
+  fields: string[]
 }
 
 export type Criteria = {
@@ -36,6 +37,10 @@ export type Criteria = {
   index ?: number
   sort ?: { [key: string]: number }
   filter ?: { [key: string]: any }
+}
+
+type RxRenderOptions = {
+  selector:  string
 }
 
 /**
@@ -82,6 +87,8 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   @computed get length () {
     return this.ids.length
   }
+
+  readonly query ?: RxQuery
 
   protected get primaryPath () {
     return this.collection.schema.primaryPath || '_id'
