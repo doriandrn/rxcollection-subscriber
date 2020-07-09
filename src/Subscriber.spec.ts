@@ -163,7 +163,7 @@ describe('RxCollection Subscriber', () => {
       subscriber = new Subscriber(collection)
       const item = await collection.insert({ name: 'gigi', dummyLevel: 5 })
       _id = item._id
-      subscriber.criteria = { limit: 50 }
+      // subscriber.criteria = { limit: 50 }
       await subscriber.updates
     })
 

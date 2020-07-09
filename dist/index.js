@@ -1,6 +1,6 @@
 'use strict';
 
-if (!mobx) var mobx = require('mobx');
+// var mobx = require('mobx');
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -164,24 +164,7 @@ var Subscriber = /*#__PURE__*/function () {
     mobx.reaction(function () {
       return Object.assign({}, _this.criteria);
     }, function () {
-      return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                _context.next = 2;
-                return this.subscribe();
-
-              case 2:
-                this.kill = _context.sent;
-
-              case 3:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
+      _this.kill = _this.subscribe();
     }, {
       fireImmediately: fireImmediately
     });
@@ -198,27 +181,138 @@ var Subscriber = /*#__PURE__*/function () {
      * @memberof Subscriber
      */
     value: function subscribe() {
-      return __awaiter(this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                this.fetching = true;
-                _context2.next = 3;
-                return this.collection.find(this.filter).limit(this.paging).sort(mobx.toJS(this.criteria.sort)).exec();
+      var _this2 = this;
 
-              case 3:
-                this.documents = _context2.sent;
-                this.fetching = false;
-                return _context2.abrupt("return", this.collection.destroy.bind(this.collection));
+      this.fetching = true;
+      this.query = this.collection.find(this.filter).limit(this.paging).sort(mobx.toJS(this.criteria.sort)); // .exec()
 
-              case 6:
-              case "end":
-                return _context2.stop();
+      this.query.$.subscribe(function (docs) {
+        if (!_this2.subscribed) _this2.subscribed = true;
+        _this2.documents = docs;
+        _this2.fetching = false;
+      });
+      return this.collection.destroy.bind(this.collection);
+    }
+    /**
+     * Implicit render function
+     * Renders pure HTML
+     *
+     * By default, fields starting with "_" are excluded
+     *
+     *
+     * @param {RenderOptions} opts
+     * @memberof Subscriber
+     */
+
+  }, {
+    key: "render",
+    value: function render(opts) {
+      var _this3 = this;
+
+      // This function is only for the browser but it could also work
+      // in console / teerminal. Imagine that! An app running in the console! Dev swag at it's finest
+      if (!document) {
+        throw new Error('Render function only works in browser so far.');
+      }
+
+      var selector = opts.selector,
+          messages = opts.messages; // Default messages object if none supplied
+
+      messages = messages || {
+        emptyState: "None"
+      };
+      var el = document.querySelector(selector);
+      if (!el) throw new Error('Could not find selector', selector);
+      el.dataset.sub = this.collection.name;
+      var header = document.createElement('li');
+      var controls = document.createElement('div');
+      controls.classList.add('controls');
+      var _this$collection$sche = this.collection.schema,
+          indexes = _this$collection$sche.indexes,
+          properties = _this$collection$sche.jsonSchema.properties;
+      var schemaFields = Object.keys(properties).filter(function (field) {
+        return field.indexOf('_') !== 0;
+      });
+      schemaFields.map(function (field) {
+        var isSortable = indexes.length && indexes.filter(function (index) {
+          return index.indexOf(field) > -1;
+        }).length;
+        var span = document.createElement('span');
+        span.textContent = field;
+
+        if (isSortable) {
+          span.classList.add('sortable');
+          span.addEventListener('click', function () {
+            var direction = Number(!_this3.criteria.sort[field]);
+            _this3.criteria.sort = _defineProperty({}, field, direction);
+            span.dataset.dir = direction;
+          });
+        }
+
+        header.append(span);
+      });
+      var itemsEl = document.createElement('ol');
+      itemsEl.start = 0;
+      if (opts.asTable) itemsEl.classList.add('table');
+      mobx.reaction(function () {
+        return Object.assign({}, _this3.items);
+      }, function (items) {
+        return __awaiter(_this3, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+          var _this4 = this;
+
+          var itemsHTML, itemsList;
+          return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  console.log('REACTIN', items);
+                  itemsHTML = '';
+                  itemsList = Object.keys(this.items);
+
+                  if (itemsList.length) {
+                    itemsList.map(function (itemId, index) {
+                      var item = _this4.items[itemId];
+                      itemsHTML += "<li data-id=\"".concat(itemId, "\">");
+
+                      Object.keys(item).filter(function (field) {
+                        return field.indexOf('_') !== 0;
+                      }).sort(function (a, b) {
+                        return schemaFields.indexOf(a) - schemaFields.indexOf(b);
+                      }).map(function (field, i) {
+                        var tag = i === 0 ? 'strong' : 'span';
+                        var content = item[field];
+
+                        if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
+                          tag = 'figure';
+                          content = "<img src=\"".concat(content, "\" />");
+                        }
+
+                        itemsHTML += "<".concat(tag, ">").concat(content, "</").concat(tag, ">"); // this has to stay as minimal as this
+                      });
+                      itemsHTML += "</li>";
+                    });
+                    itemsEl.innerHTML = "".concat(itemsHTML);
+                    if (opts.asTable) itemsEl.prepend(header);
+
+                    if (!el.querySelector('.items')) {
+                      el.append(itemsEl);
+                    }
+
+                    if (!el.querySelector('.controls')) {
+                      el.prepend(controls);
+                    }
+                  } else {
+                    el.innerHTML = el.innerHTML + "<p>".concat(messages.emptyState, "</p>");
+                  }
+
+                case 4:
+                case "end":
+                  return _context.stop();
+              }
             }
-          }
-        }, _callee2, this);
-      }));
+          }, _callee, this);
+        }));
+      });
     }
     /**
      * (De)selects an item by it's id
@@ -256,28 +350,28 @@ var Subscriber = /*#__PURE__*/function () {
   }, {
     key: "items",
     get: function get() {
-      var _this2 = this;
+      var _this5 = this;
 
       return Object.assign.apply(Object, [{}].concat(_toConsumableArray(this.documents.map(function (item) {
-        return _defineProperty({}, item[_this2.primaryPath], item._data);
+        return _defineProperty({}, item[_this5.primaryPath], item._data);
       }))));
     }
   }, {
     key: "selectedDoc",
     get: function get() {
-      var _this3 = this;
+      var _this6 = this;
 
       return this.documents.filter(function (doc) {
-        return doc[_this3.primaryPath] === _this3.selectedId;
+        return doc[_this6.primaryPath] === _this6.selectedId;
       })[0];
     }
   }, {
     key: "editing",
     get: function get() {
-      var _this4 = this;
+      var _this7 = this;
 
       return this.documents.filter(function (doc) {
-        return doc[_this4.primaryPath] === _this4.activeId;
+        return doc[_this7.primaryPath] === _this7.activeId;
       })[0];
     }
   }, {
@@ -306,23 +400,23 @@ var Subscriber = /*#__PURE__*/function () {
   }, {
     key: "updates",
     get: function get() {
-      var _this5 = this;
+      var _this8 = this;
 
       return new Promise(function (resolve) {
         mobx.reaction(function () {
-          return _this5.fetching;
+          return _this8.fetching;
         }, function (status) {
-          return __awaiter(_this5, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-            return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          return __awaiter(_this8, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+            return regeneratorRuntime.wrap(function _callee2$(_context2) {
               while (1) {
-                switch (_context3.prev = _context3.next) {
+                switch (_context2.prev = _context2.next) {
                   case 0:
                     if (status) {
-                      _context3.next = 4;
+                      _context2.next = 4;
                       break;
                     }
 
-                    _context3.next = 3;
+                    _context2.next = 3;
                     return delay(50);
 
                   case 3:
@@ -331,10 +425,10 @@ var Subscriber = /*#__PURE__*/function () {
 
                   case 4:
                   case "end":
-                    return _context3.stop();
+                    return _context2.stop();
                 }
               }
-            }, _callee3);
+            }, _callee2);
           }));
         });
       });
@@ -374,4 +468,4 @@ __decorate([mobx.action], Subscriber.prototype, "select", null);
 
 __decorate([mobx.action], Subscriber.prototype, "edit", null);
 
-if (module) module.exports = Subscriber;
+module.exports = Subscriber;

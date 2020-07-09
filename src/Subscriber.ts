@@ -1,5 +1,6 @@
 import { RxCollection, RxDocument } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
+import { spawn } from 'child_process'
 
 const delay = function (value: number) {
   return new Promise(resolve =>
@@ -115,8 +116,8 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     }
 
     // Register the reaction on criteria change
-    reaction(() => ({ ...this.criteria }), async () => {
-      this.kill = await this.subscribe()
+    reaction(() => ({ ...this.criteria }), () => {
+      this.kill = this.subscribe()
     }, { fireImmediately })
   }
 
@@ -141,18 +142,126 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  protected async subscribe () {
+  protected subscribe () {
     this.fetching = true
 
-    this.documents = await this.collection
+    this.query = this.collection
       .find(this.filter)
       .limit(this.paging)
       .sort(toJS(this.criteria.sort))
-      .exec()
+      // .exec()
 
-    this.fetching = false
+    this.query.$.subscribe(docs => {
+      if (!this.subscribed) this.subscribed = true
+      this.documents = docs
+      this.fetching = false
+    })
 
     return this.collection.destroy.bind(this.collection)
+  }
+
+  /**
+   * Implicit render function
+   * Renders pure HTML
+   *
+   * By default, fields starting with "_" are excluded
+   *
+   *
+   * @param {RenderOptions} opts
+   * @memberof Subscriber
+   */
+  render (opts: RenderOptions) {
+    // This function is only for the browser but it could also work
+    // in console / teerminal. Imagine that! An app running in the console! Dev swag at it's finest
+    if (!document) {
+      throw new Error('Render function only works in browser so far.')
+    }
+    let { selector, messages } = opts
+
+    // Default messages object if none supplied
+    messages = messages || {
+      emptyState: `None`
+    }
+    const el = document.querySelector(selector)
+    if (!el)
+      throw new Error('Could not find selector', selector)
+
+    el.dataset.sub = this.collection.name
+
+    const header = document.createElement('li')
+    const controls = document.createElement('div')
+    controls.classList.add('controls')
+
+    const { indexes, jsonSchema: { properties } } = this.collection.schema
+    const schemaFields = Object
+      .keys(properties)
+      .filter(field => {
+        return field.indexOf('_') !== 0
+      })
+
+    schemaFields.map(field => {
+      const isSortable = indexes.length && indexes.filter(index => index.indexOf(field) > -1).length
+
+      const span = document.createElement('span')
+      span.textContent = field
+      if (isSortable) {
+        span.classList.add('sortable')
+        span.addEventListener('click', () => {
+          const direction = Number(!this.criteria.sort[field])
+          this.criteria.sort = { [field]: direction }
+          span.dataset.dir = direction
+        })
+      }
+      header.append(span)
+    })
+
+    const itemsEl = document.createElement('ol')
+    itemsEl.start = 0
+    if (opts.asTable) itemsEl.classList.add('table')
+
+    reaction(() => ({ ...this.items }), (async (items) => {
+      console.log('REACTIN', items)
+      let itemsHTML = ''
+
+      const itemsList = Object.keys(this.items)
+
+      if (itemsList.length) {
+        itemsList.map((itemId, index) => {
+          const item = this.items[itemId]
+          itemsHTML += `<li data-id="${itemId}">`
+          if (index === 0) {
+
+          }
+          Object.keys(item)
+            .filter(field =>  field.indexOf('_') !== 0)
+            .sort((a, b) => schemaFields.indexOf(a) - schemaFields.indexOf(b))
+            .map((field, i) => {
+              let tag = i === 0 ? 'strong' : 'span'
+              let content = item[field]
+              if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
+                tag = 'figure'
+                content = `<img src="${content}" />`
+              }
+              itemsHTML += `<${tag}>${content}</${tag}>` // this has to stay as minimal as this
+            })
+          itemsHTML += `</li>`
+        })
+
+        itemsEl.innerHTML = `${itemsHTML}`
+        if (opts.asTable) itemsEl.prepend(header)
+
+        if (!el.querySelector('.items')) {
+          el.append(itemsEl)
+        }
+
+        if (!el.querySelector('.controls')) {
+          el.prepend(controls)
+        }
+
+      } else {
+        el.innerHTML = el.innerHTML + `<p>${messages.emptyState}</p>`
+      }
+    }))
   }
 
   /**
