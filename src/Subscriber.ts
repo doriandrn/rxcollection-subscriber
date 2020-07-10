@@ -70,9 +70,13 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   @computed get ids () { return Object.keys(this.items) }
 
   @computed get items () {
+    const { fields } = this
     return Object.assign({},
       ...this.documents
-        .map(item => ({ [item[this.primaryPath]]: item._data }))
+        .map(item => ({ [item[this.primaryPath]]: fields ?
+            Object.fromEntries(fields.map(f => [f, item[f]])) :
+            item._data
+          }))
     )
   }
 
@@ -126,7 +130,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       }
 
       if (fields) {
-
+        this.fields = fields
       }
     }
 
@@ -239,6 +243,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       let itemsHTML = ''
 
       const itemsList = Object.keys(this.items)
+      el.classList.add('fetching')
 
       if (itemsList.length) {
         itemsList.map((itemId, index) => {
@@ -276,6 +281,8 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       } else {
         el.innerHTML = el.innerHTML + `<p>${messages.emptyState}</p>`
       }
+
+      el.classList.remove('fetching')
     }))
   }
 

@@ -155,9 +155,21 @@ var Subscriber = /*#__PURE__*/function () {
 
     if (options) {
       var multipleSelect = options.multipleSelect,
-          lazy = options.lazy;
+          lazy = options.lazy,
+          criteria = options.criteria,
+          fields = options.fields;
       if (multipleSelect) this.selectedId = [];
       if (lazy) fireImmediately = false;
+
+      if (criteria) {
+        Object.keys(criteria).forEach(function (key) {
+          return _this.criteria[key] = criteria[key];
+        });
+      }
+
+      if (fields) {
+        this.fields = fields;
+      }
     } // Register the reaction on criteria change
 
 
@@ -268,6 +280,7 @@ var Subscriber = /*#__PURE__*/function () {
                   console.log('REACTIN', items);
                   itemsHTML = '';
                   itemsList = Object.keys(this.items);
+                  el.classList.add('fetching');
 
                   if (itemsList.length) {
                     itemsList.map(function (itemId, index) {
@@ -305,7 +318,9 @@ var Subscriber = /*#__PURE__*/function () {
                     el.innerHTML = el.innerHTML + "<p>".concat(messages.emptyState, "</p>");
                   }
 
-                case 4:
+                  el.classList.remove('fetching');
+
+                case 6:
                 case "end":
                   return _context.stop();
               }
@@ -352,8 +367,11 @@ var Subscriber = /*#__PURE__*/function () {
     get: function get() {
       var _this5 = this;
 
+      var fields = this.fields;
       return Object.assign.apply(Object, [{}].concat(_toConsumableArray(this.documents.map(function (item) {
-        return _defineProperty({}, item[_this5.primaryPath], item._data);
+        return _defineProperty({}, item[_this5.primaryPath], fields ? Object.fromEntries(fields.map(function (f) {
+          return [f, item[f]];
+        })) : item._data);
       }))));
     }
   }, {
