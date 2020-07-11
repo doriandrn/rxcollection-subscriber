@@ -2,6 +2,22 @@
 
 // var mobx = require('mobx');
 
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -196,7 +212,9 @@ var Subscriber = /*#__PURE__*/function () {
       var _this2 = this;
 
       this.fetching = true;
-      this.query = this.collection.find(this.filter).limit(this.paging).sort(mobx.toJS(this.criteria.sort)); // .exec()
+      this.query = this.collection.find({
+        selector: this.filter
+      }).limit(this.paging).sort(mobx.toJS(this.criteria.sort)); // .exec()
 
       this.query.$.subscribe(function (docs) {
         if (!_this2.subscribed) _this2.subscribed = true;
@@ -211,6 +229,8 @@ var Subscriber = /*#__PURE__*/function () {
      *
      * By default, fields starting with "_" are excluded
      *
+     * This function is only for the browser but it could also work
+     * in console / terminal. Imagine that! An app running in the console! Dev swag at it's finest
      *
      * @param {RenderOptions} opts
      * @memberof Subscriber
@@ -221,29 +241,140 @@ var Subscriber = /*#__PURE__*/function () {
     value: function render(opts) {
       var _this3 = this;
 
-      // This function is only for the browser but it could also work
-      // in console / teerminal. Imagine that! An app running in the console! Dev swag at it's finest
-      if (!document) {
-        throw new Error('Render function only works in browser so far.');
-      }
-
+      if (!document) throw new Error('Render function only works in browser so far.');
       var selector = opts.selector,
           messages = opts.messages; // Default messages object if none supplied
 
       messages = messages || {
-        emptyState: "None"
+        emptyState: "None",
+        multipleSelected: "%s selected"
       };
       var el = document.querySelector(selector);
       if (!el) throw new Error('Could not find selector', selector);
-      el.dataset.sub = this.collection.name;
       var header = document.createElement('li');
-      var controls = document.createElement('div');
-      controls.classList.add('controls');
+      var controlsEl = document.createElement('div');
+      var selectedControl = document.createElement('div');
+      var controls = {
+        limit: {
+          type: 'number'
+        },
+        filter: {
+          type: 'text'
+        }
+      };
       var _this$collection$sche = this.collection.schema,
           indexes = _this$collection$sche.indexes,
           properties = _this$collection$sche.jsonSchema.properties;
       var schemaFields = Object.keys(properties).filter(function (field) {
         return field.indexOf('_') !== 0;
+      });
+      el.dataset.sub = this.collection.name;
+      controlsEl.classList.add('controls');
+      controlsEl.append(selectedControl);
+      Object.keys(controls).map(function (control) {
+        var controlContainer = document.createElement('span');
+        var label = document.createElement('label');
+        label.textContent = String(control).toUpperCase();
+
+        switch (control) {
+          case 'limit':
+            var input = document.createElement('input');
+            input.type = controls[control].type;
+            input.value = _this3.criteria[control];
+            input.addEventListener('change', function (e) {
+              _this3.criteria[control] = e.target.value;
+            });
+            controlContainer.append(input);
+            break;
+
+          case 'filter':
+            var but = document.createElement('button');
+            but.textContent = 'add filter';
+            var filterEntry = document.createElement('div');
+            var connector = document.createElement('select');
+            var fieldSelect = document.createElement('select');
+            var operator = document.createElement('select');
+            var removeFilter = document.createElement('button');
+            var valInput = document.createElement('input');
+
+            var ops = function ops(fieldType) {
+              return fieldType === 'number' ? {
+                lt: '<',
+                lte: '<=',
+                gt: '>',
+                gte: '>=',
+                eq: '='
+              } : {
+                in: 'contains',
+                nin: 'does not contain',
+                regex: 'RegEx'
+              };
+            };
+
+            schemaFields.map(function (field) {
+              var op = document.createElement('option');
+              op.value = field;
+              op.textContent = field;
+              fieldSelect.append(op);
+            });
+            removeFilter.textContent = 'Remove filter';
+
+            var valChange = function valChange(operator, input, field) {
+              return function (e) {
+                var value = e.target.value;
+                if (!value) return;
+                but.disabled = false;
+
+                var filterValue = _defineProperty({}, field.value, _defineProperty({}, "$".concat(operator.value), input.type === 'number' ? Number(input.value) : String(input.value)));
+
+                console.log('fv', filterValue);
+                _this3.criteria.filter = filterValue;
+              };
+            };
+
+            fieldSelect.name = 'field';
+
+            var fieldChange = function fieldChange(operator, input) {
+              return function (e) {
+                var value = e.target.value;
+                var fieldType = properties[value].type; // console.log(input, operator, value, e, fieldType)
+
+                input.setAttribute('type', fieldType === 'number' ? 'number' : 'text'); // input.type = fieldType === 'number' ? 'number' : 'text'
+
+                input.value = null;
+
+                var _ops = ops(fieldType);
+
+                console.log(_ops);
+                operator.innerHTML = '';
+                Object.keys(_ops).map(function (opId) {
+                  var opEl = document.createElement('option');
+                  opEl.value = opId;
+                  opEl.textContent = _ops[opId];
+                  operator.append(opEl);
+                });
+              };
+            };
+
+            filterEntry.append(fieldSelect, operator, valInput, removeFilter);
+            but.addEventListener('click', function (e) {
+              var f = filterEntry.cloneNode(true);
+              var fnext = filterEntry.cloneNode(true);
+              console.log(f.children);
+              f.children[0].addEventListener('change', fieldChange(f.children[1], f.children[2])); // f.children[1].addEventListener(opChange)
+
+              f.children[2].addEventListener('change', valChange(f.children[1], f.children[2], f.children[0]));
+              fnext.prepend(connector);
+              controlContainer.append(f);
+              controlContainer.append(fnext);
+              e.target.disabled = true;
+            });
+            controlContainer.append(but);
+            break;
+        }
+
+        controlContainer.append(label);
+        controlsEl.append(controlContainer);
       });
       schemaFields.map(function (field) {
         var isSortable = indexes.length && indexes.filter(function (index) {
@@ -266,6 +397,13 @@ var Subscriber = /*#__PURE__*/function () {
       var itemsEl = document.createElement('ol');
       itemsEl.start = 0;
       if (opts.asTable) itemsEl.classList.add('table');
+      mobx.reaction(function () {
+        return _typeof(_this3.selectedId) === 'object' ? _toConsumableArray(_this3.selectedId) : _this3.selectedId;
+      }, function (ids) {
+        console.log('s ids', ids);
+        var selectedId = _this3.selectedId;
+        if (_typeof(selectedId) === 'object') selectedControl.innerHTML = messages.multipleSelected.replace('%s', _this3.selectedId.length);
+      });
       mobx.reaction(function () {
         return Object.assign({}, _this3.items);
       }, function (items) {
@@ -312,7 +450,7 @@ var Subscriber = /*#__PURE__*/function () {
                     }
 
                     if (!el.querySelector('.controls')) {
-                      el.prepend(controls);
+                      el.prepend(controlsEl);
                     }
                   } else {
                     el.innerHTML = el.innerHTML + "<p>".concat(messages.emptyState, "</p>");

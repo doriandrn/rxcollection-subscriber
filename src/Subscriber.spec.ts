@@ -149,13 +149,25 @@ describe('RxCollection Subscriber', () => {
 
       describe('.criteria', () => {
         let s
-        test('matches its keys on init', async () => {
+        test('limit', async () => {
           const limit = 1
-          s = new Subscriber(collection, { criteria: { limit: 1 } })
+          s = new Subscriber(collection, { criteria: { limit } })
           await s.updates
 
           expect(s.criteria.limit).toEqual(limit)
           s.kill()
+        })
+
+        test('filter', async () => {
+          const filter = { name: { $eq: 'blalbalbbal' } }
+
+          s = new Subscriber(collection, { criteria: { filter } })
+          await s.updates
+
+          expect(s.criteria.filter).toEqual(filter)
+          s.kill()
+
+          expect(s.ids.length).toEqual(0)
         })
       })
 

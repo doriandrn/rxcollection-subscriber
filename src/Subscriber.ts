@@ -165,7 +165,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     this.fetching = true
 
     this.query = this.collection
-      .find(this.filter)
+      .find({ selector: this.filter })
       .limit(this.paging)
       .sort(toJS(this.criteria.sort))
       // .exec()
@@ -185,38 +185,165 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    *
    * By default, fields starting with "_" are excluded
    *
+   * This function is only for the browser but it could also work
+   * in console / terminal. Imagine that! An app running in the console! Dev swag at it's finest
    *
    * @param {RenderOptions} opts
    * @memberof Subscriber
    */
   render (opts: RenderOptions) {
-    // This function is only for the browser but it could also work
-    // in console / teerminal. Imagine that! An app running in the console! Dev swag at it's finest
-    if (!document) {
+    if (!document)
       throw new Error('Render function only works in browser so far.')
-    }
+
     let { selector, messages } = opts
 
     // Default messages object if none supplied
     messages = messages || {
-      emptyState: `None`
+      emptyState: `None`,
+      multipleSelected: `%s selected`
     }
+
     const el = document.querySelector(selector)
     if (!el)
       throw new Error('Could not find selector', selector)
 
-    el.dataset.sub = this.collection.name
 
     const header = document.createElement('li')
-    const controls = document.createElement('div')
-    controls.classList.add('controls')
+    const controlsEl = document.createElement('div')
+
+    const selectedControl = document.createElement('div')
+
+    const controls = {
+      limit: { type: 'number' },
+      filter: { type: 'text' }
+    }
 
     const { indexes, jsonSchema: { properties } } = this.collection.schema
     const schemaFields = Object
-      .keys(properties)
-      .filter(field => {
-        return field.indexOf('_') !== 0
-      })
+    .keys(properties)
+    .filter(field => {
+      return field.indexOf('_') !== 0
+    })
+
+    el.dataset.sub = this.collection.name
+    controlsEl.classList.add('controls')
+    controlsEl.append(selectedControl)
+
+    Object.keys(controls).map(control => {
+      const controlContainer = document.createElement('span')
+
+      const label = document.createElement('label')
+      label.textContent = String(control).toUpperCase()
+
+      switch (control) {
+        case 'limit':
+          const input = document.createElement('input')
+          input.type = controls[control].type
+          input.value = this.criteria[control]
+          input.addEventListener('change', e => {
+            this.criteria[control] = e.target.value
+          })
+          controlContainer.append(input)
+          break
+
+        case 'filter':
+          const but = document.createElement('button')
+          but.textContent = 'add filter'
+
+          const filterEntry = document.createElement('div')
+
+          const connector = document.createElement('select')
+          const fieldSelect = document.createElement('select')
+          const operator = document.createElement('select')
+          const removeFilter = document.createElement('button')
+          const valInput = document.createElement('input')
+
+          const ops = fieldType => fieldType === 'number' ?
+            {
+              lt: '<',
+              lte: '<=',
+              gt: '>',
+              gte: '>=',
+              eq: '='
+            } :
+            {
+              in: 'contains',
+              nin: 'does not contain',
+              regex: 'RegEx',
+            }
+
+          schemaFields.map(field => {
+            const op = document.createElement('option')
+            op.value = field
+            op.textContent = field
+            fieldSelect.append(op)
+          })
+
+          removeFilter.textContent = 'Remove filter'
+
+          const valChange = (operator, input, field) => e => {
+            const { value } = e.target
+            if (!value) return
+
+            but.disabled = false
+
+            const filterValue = { [field.value]: {
+              [`$${operator.value}`]: input.type === 'number' ?
+                Number(input.value) :
+                String(input.value)
+            }}
+            console.log('fv', filterValue)
+            this.criteria.filter = filterValue
+          }
+
+          fieldSelect.name = 'field'
+          const fieldChange = (operator, input) => e => {
+            const { value } = e.target
+            const fieldType = properties[value].type
+            // console.log(input, operator, value, e, fieldType)
+            input.setAttribute('type', fieldType === 'number' ? 'number' : 'text')
+            // input.type = fieldType === 'number' ? 'number' : 'text'
+            input.value = null
+
+            const _ops = ops(fieldType)
+            console.log(_ops)
+
+            operator.innerHTML = ''
+
+            Object
+              .keys(_ops)
+              .map(opId => {
+              const opEl = document.createElement('option')
+              opEl.value = opId
+              opEl.textContent = _ops[opId]
+              operator.append(opEl)
+            })
+          }
+
+          filterEntry.append(fieldSelect, operator, valInput, removeFilter)
+
+          but.addEventListener('click', e => {
+            const f = filterEntry.cloneNode(true)
+            const fnext = filterEntry.cloneNode(true)
+            console.log(f.children)
+
+            f.children[0].addEventListener('change', fieldChange(f.children[1], f.children[2]))
+            // f.children[1].addEventListener(opChange)
+            f.children[2].addEventListener('change', valChange(f.children[1], f.children[2], f.children[0]))
+
+            fnext.prepend(connector)
+
+            controlContainer.append(f)
+            controlContainer.append(fnext)
+            e.target.disabled = true
+          })
+          controlContainer.append(but)
+          break
+      }
+
+      controlContainer.append(label)
+      controlsEl.append(controlContainer)
+    })
 
     schemaFields.map(field => {
       const isSortable = indexes.length && indexes.filter(index => index.indexOf(field) > -1).length
@@ -237,6 +364,13 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     const itemsEl = document.createElement('ol')
     itemsEl.start = 0
     if (opts.asTable) itemsEl.classList.add('table')
+
+    reaction(() => typeof this.selectedId === 'object' ? [ ...this.selectedId ] : this.selectedId, ids => {
+      console.log('s ids', ids)
+      const { selectedId } = this
+      if (typeof selectedId === 'object')
+        selectedControl.innerHTML = messages.multipleSelected.replace('%s', this.selectedId.length)
+    })
 
     reaction(() => ({ ...this.items }), (async (items) => {
       console.log('REACTIN', items)
@@ -275,7 +409,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
         }
 
         if (!el.querySelector('.controls')) {
-          el.prepend(controls)
+          el.prepend(controlsEl)
         }
 
       } else {
