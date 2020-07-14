@@ -374,15 +374,16 @@ function render(opts) {
                 return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
                   var _this3 = this;
 
-                  var item, itemHTML;
+                  var item, drel, itemHTML;
                   return regeneratorRuntime.wrap(function _callee2$(_context2) {
                     while (1) {
                       switch (_context2.prev = _context2.next) {
                         case 0:
                           item = this.items[itemId];
+                          drel = opts && opts.asTable ? schemaFields : Object.keys(item);
                           _context2.t0 = Array;
-                          _context2.next = 4;
-                          return Promise.all(Object.keys(item).filter(function (field) {
+                          _context2.next = 5;
+                          return Promise.all(drel.filter(function (field) {
                             return field.indexOf('_') !== 0;
                           }).sort(function (a, b) {
                             return schemaFields.indexOf(a) - schemaFields.indexOf(b);
@@ -395,33 +396,35 @@ function render(opts) {
                                   switch (_context.prev = _context.next) {
                                     case 0:
                                       tag = i === 0 ? 'strong' : 'span';
-                                      content = item[field]; // populate fields as req in mapRefFields
 
                                       if (!(mapRefFields && mapRefFields[field])) {
-                                        _context.next = 12;
+                                        _context.next = 11;
                                         break;
                                       }
 
                                       if (!(Object.keys(mapRefFields).indexOf(field) > -1)) {
-                                        _context.next = 10;
+                                        _context.next = 9;
                                         break;
                                       }
 
                                       val = mapRefFields[field].split('.');
                                       _doc = item._doc;
-                                      _context.next = 8;
+                                      _context.next = 7;
                                       return _doc["".concat(val[0], "_")];
 
-                                    case 8:
+                                    case 7:
                                       populated = _context.sent;
                                       content = populated.map(function (c) {
                                         tax = tax || c.collection.schema.jsonSchema.title;
                                         return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
                                       }).join('');
 
-                                    case 10:
+                                    case 9:
                                       _context.next = 12;
                                       break;
+
+                                    case 11:
+                                      content = item[field];
 
                                     case 12:
                                       if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
@@ -429,7 +432,7 @@ function render(opts) {
                                         content = "<img src=\"".concat(content, "\" />");
                                       }
 
-                                      return _context.abrupt("return", "<".concat(tag, ">").concat(content, "</").concat(tag, ">"));
+                                      return _context.abrupt("return", "<".concat(tag, ">").concat(content || '-', "</").concat(tag, ">"));
 
                                     case 14:
                                     case "end":
@@ -440,12 +443,12 @@ function render(opts) {
                             }));
                           }));
 
-                        case 4:
+                        case 5:
                           _context2.t1 = _context2.sent;
                           itemHTML = _context2.t0.from.call(_context2.t0, _context2.t1).join('');
                           return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\">").concat(itemHTML, "</li>"));
 
-                        case 7:
+                        case 8:
                         case "end":
                           return _context2.stop();
                       }

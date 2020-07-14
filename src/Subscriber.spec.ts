@@ -76,8 +76,7 @@ describe('RxCollection Subscriber', () => {
         let subscriber: Subscriber<any>, limit: number = 2
 
         beforeAll(async () => {
-          subscriber = new Subscriber(collection, { progressivePaging: true })
-          subscriber.criteria.limit = limit
+          subscriber = new Subscriber(collection, { progressivePaging: true, criteria: { limit } })
           await subscriber.updates
         })
 
@@ -144,6 +143,37 @@ describe('RxCollection Subscriber', () => {
             })
           })
 
+        })
+      })
+
+      describe('.multipleSelect = false', () => {
+        let subscriber: Subscriber<any>, oneRandomId: string
+
+        beforeAll(async () => {
+          subscriber = new Subscriber(collection, { multipleSelect: false })
+          await subscriber.updates
+          oneRandomId = subscriber.ids[getRandomInt(9)]
+        })
+
+        afterAll(() => subscriber.kill())
+
+        describe('.select()', () => {
+          describe('selects & deselects an id', () => {
+            beforeAll(() => { subscriber.select(oneRandomId) })
+
+            test('selects', () => {
+              expect(subscriber.selectedId).toEqual(oneRandomId)
+            })
+
+            test('is string', () => {
+              expect(typeof subscriber.selectedId).toEqual('string')
+            })
+
+            test('deselects', () => {
+              subscriber.select(oneRandomId)
+              expect(subscriber.selectedId).not.toEqual(oneRandomId)
+            })
+          })
         })
       })
 

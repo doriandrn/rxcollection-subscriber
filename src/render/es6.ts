@@ -274,15 +274,18 @@ export default function render (opts: RenderOptions) {
     if (itemsList.length) {
       itemsHTML = await Promise.all(itemsList.map(async (itemId, index) => {
         const item = this.items[itemId]
+        const drel = opts && opts.asTable ?
+        schemaFields :
+        Object.keys(item)
 
-        const itemHTML = Array.from(await Promise.all(Object.keys(item)
+        const itemHTML = Array.from(await Promise.all(
+          drel
           .filter(field =>  field.indexOf('_') !== 0)
           .sort((a, b) => schemaFields.indexOf(a) - schemaFields.indexOf(b))
           .map(async (field, i) => {
             let tag = i === 0 ? 'strong' : 'span'
             let content
 
-            content = item[field]
             // populate fields as req in mapRefFields
             if (mapRefFields && mapRefFields[field]) {
               if (Object.keys(mapRefFields).indexOf(field) > -1) {
@@ -297,13 +300,14 @@ export default function render (opts: RenderOptions) {
                 }).join('')
               }
             } else {
+              content = item[field]
             }
 
             if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
               tag = 'figure'
               content = `<img src="${content}" />`
             }
-            return `<${tag}>${content}</${tag}>` // this has to stay as minimal as this
+            return `<${tag}>${content || '-'}</${tag}>` // this has to stay as minimal as this
           }))).join('')
 
         return `<li data-id="${itemId}">${itemHTML}</li>`

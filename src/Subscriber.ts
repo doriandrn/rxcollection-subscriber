@@ -209,7 +209,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       else
         this.selectedId.splice(this.selectedId.indexOf(id), 1)
     } else {
-      this.selectedId = id
+      this.selectedId = id !== String(this.selectedId) ? id : ''
     }
   }
 
