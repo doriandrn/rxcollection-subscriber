@@ -14,7 +14,8 @@
     "module": "esnext",
     "lib": [
       "esnext",
-      "es2015"
+      "es2015",
+      "DOM"
     ],
     "baseUrl": "src",
     "paths": { },
