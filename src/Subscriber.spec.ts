@@ -213,12 +213,12 @@ describe('RxCollection Subscriber', () => {
           const filter = { name: { $eq: 'blalbalbbal' } }
 
           s = new Subscriber(collection, { criteria: { filter } })
-          await s.updates
 
           expect(s.criteria.filter).toEqual(filter)
-          s.kill()
-
+          await s.updates
           expect(s.ids.length).toEqual(0)
+
+          s.kill()
         })
       })
 

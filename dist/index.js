@@ -186,19 +186,25 @@ function render(opts) {
   var mcrit = {};
 
   if (persistState && opts.holder) {
-    mcrit = JSON.parse(localStorage.getItem(subStorageName));
+    try {
+      mcrit = JSON.parse(localStorage.getItem(subStorageName));
+    } catch (e) {
+      console.log('wtf json parse');
+    }
 
     if (mcrit) {
       var _mcrit = mcrit,
-          selectedId = _mcrit.selectedId;
+          selectedId = _mcrit.selectedId,
+          criteria = _mcrit.criteria;
 
       if (selectedId) {
         this.select(selectedId);
       }
-    } // if (mcrit && mcrit.selectedId) {
-    //   console.log(mcrit.selectedId)
-    // }
 
+      if (criteria) {
+        this.criteria = Object.assign({}, criteria);
+      }
+    }
   }
 
   Object.keys(controls).map(function (control) {
@@ -376,22 +382,30 @@ function render(opts) {
     return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
       var _this2 = this;
 
-      var itemsHTML, itemsList;
+      var criteria, itemsHTML, itemsList;
       return regeneratorRuntime.wrap(function _callee3$(_context3) {
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
               console.log('REACTIN', items);
+              criteria = this.criteria;
+
+              if (opts.persistState) {
+                localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, {
+                  criteria: criteria
+                })));
+              }
+
               itemsHTML = '';
               itemsList = Object.keys(this.items);
               el.classList.add('fetching');
 
               if (!itemsList.length) {
-                _context3.next = 14;
+                _context3.next = 16;
                 break;
               }
 
-              _context3.next = 7;
+              _context3.next = 9;
               return Promise.all(itemsList.map(function (itemId, index) {
                 return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
                   var _this3 = this;
@@ -437,14 +451,16 @@ function render(opts) {
                                     case 7:
                                       populated = _context.sent;
 
-                                      if (populated.length > -1) {
-                                        content = populated.map(function (c) {
-                                          if (!c) return;
-                                          tax = tax || c.collection.schema.jsonSchema.title;
-                                          return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
-                                        }).join('');
-                                      } else {
-                                        content = "<a href=\"#detail?".concat(populated.collection.schema.jsonSchema.title, "=").concat(itemId, "\">").concat(populated[val[1]], "</a>");
+                                      if (populated) {
+                                        if (populated.length > -1) {
+                                          content = populated.map(function (c) {
+                                            if (!c) return;
+                                            tax = tax || c.collection.schema.jsonSchema.title;
+                                            return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
+                                          }).join('');
+                                        } else {
+                                          content = "<a href=\"#detail?".concat(populated.collection.schema.jsonSchema.title, "=").concat(itemId, "\">").concat(populated[val[1]], "</a>");
+                                        }
                                       }
 
                                     case 9:
@@ -486,7 +502,7 @@ function render(opts) {
                 }));
               }));
 
-            case 7:
+            case 9:
               itemsHTML = _context3.sent;
               itemsEl.innerHTML = "".concat(Array.from(itemsHTML).join(''));
               if (opts.asTable) itemsEl.prepend(header);
@@ -499,16 +515,16 @@ function render(opts) {
                 el.prepend(controlsEl);
               }
 
-              _context3.next = 15;
+              _context3.next = 17;
               break;
 
-            case 14:
+            case 16:
               el.innerHTML = el.innerHTML + "<p>".concat(messages.emptyState, "</p>");
 
-            case 15:
+            case 17:
               el.classList.remove('fetching');
 
-            case 16:
+            case 18:
             case "end":
               return _context3.stop();
           }
@@ -600,7 +616,24 @@ var Subscriber = /*#__PURE__*/function () {
     mobx.reaction(function () {
       return Object.assign({}, _this.criteria);
     }, function () {
-      _this.kill = _this.subscribe();
+      return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.subscribe();
+
+              case 2:
+                this.kill = _context.sent;
+
+              case 3:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
     }, {
       fireImmediately: fireImmediately
     }); // if (process && process.browser) {
@@ -619,19 +652,30 @@ var Subscriber = /*#__PURE__*/function () {
      * @memberof Subscriber
      */
     value: function subscribe() {
-      var _this2 = this;
+      return __awaiter(this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        var _this2 = this;
 
-      this.fetching = true;
-      this.query = this.collection.find({
-        selector: this.filter
-      }).limit(this.paging).sort(mobx.toJS(this.criteria.sort)); // .exec()
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                this.fetching = true;
+                this.collection.find({
+                  selector: this.filter
+                }).limit(this.paging).sort(mobx.toJS(this.criteria.sort)).$.subscribe(function (docs) {
+                  if (!_this2.subscribed) _this2.subscribed = true;
+                  _this2.documents = docs;
+                  _this2.fetching = false;
+                });
+                return _context2.abrupt("return", this.collection.destroy.bind(this.collection));
 
-      this.query.$.subscribe(function (docs) {
-        if (!_this2.subscribed) _this2.subscribed = true;
-        _this2.documents = docs;
-        _this2.fetching = false;
-      });
-      return this.collection.destroy.bind(this.collection);
+              case 3:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
     }
     /**
      * (De)selects an item by it's id
@@ -643,8 +687,20 @@ var Subscriber = /*#__PURE__*/function () {
   }, {
     key: "select",
     value: function select(id) {
+      var _this3 = this;
+
       if (typeof this.selectedId !== 'string' && this.selectedId && this.options && this.options.multipleSelect) {
-        if (this.selectedId.indexOf(id) < 0) this.selectedId.push(id);else this.selectedId.splice(this.selectedId.indexOf(id), 1);
+        var select = function select(id) {
+          if (typeof id === 'string') {
+            if (_this3.selectedId.indexOf(id) < 0) _this3.selectedId.push(id);else _this3.selectedId.splice(_this3.selectedId.indexOf(id), 1);
+          } else {
+            if (id.length) id.map(function (_id) {
+              return select(_id);
+            });
+          }
+        };
+
+        select(id);
       } else {
         this.selectedId = id !== String(this.selectedId) ? id : '';
       }
@@ -669,11 +725,11 @@ var Subscriber = /*#__PURE__*/function () {
   }, {
     key: "items",
     get: function get() {
-      var _this3 = this;
+      var _this4 = this;
 
       var fields = this.fields;
       return Object.assign.apply(Object, [{}].concat(_toConsumableArray(this.documents.map(function (_doc) {
-        return _defineProperty({}, _doc[_this3.primaryPath], Object.assign({}, fields ? Object.fromEntries(fields.map(function (f) {
+        return _defineProperty({}, _doc[_this4.primaryPath], Object.assign({}, fields ? Object.fromEntries(fields.map(function (f) {
           return [f, _doc[f]];
         })) : _doc._data, {
           _doc: _doc
@@ -683,19 +739,19 @@ var Subscriber = /*#__PURE__*/function () {
   }, {
     key: "selectedDoc",
     get: function get() {
-      var _this4 = this;
+      var _this5 = this;
 
       return this.documents.filter(function (doc) {
-        return doc[_this4.primaryPath] === _this4.selectedId;
+        return doc[_this5.primaryPath] === _this5.selectedId;
       })[0];
     }
   }, {
     key: "editing",
     get: function get() {
-      var _this5 = this;
+      var _this6 = this;
 
       return this.documents.filter(function (doc) {
-        return doc[_this5.primaryPath] === _this5.activeId;
+        return doc[_this6.primaryPath] === _this6.activeId;
       })[0];
     }
   }, {
@@ -724,23 +780,23 @@ var Subscriber = /*#__PURE__*/function () {
   }, {
     key: "updates",
     get: function get() {
-      var _this6 = this;
+      var _this7 = this;
 
       return new Promise(function (resolve) {
         mobx.reaction(function () {
-          return _this6.fetching;
+          return _this7.fetching;
         }, function (status) {
-          return __awaiter(_this6, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-            return regeneratorRuntime.wrap(function _callee$(_context) {
+          return __awaiter(_this7, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+            return regeneratorRuntime.wrap(function _callee3$(_context3) {
               while (1) {
-                switch (_context.prev = _context.next) {
+                switch (_context3.prev = _context3.next) {
                   case 0:
                     if (status) {
-                      _context.next = 4;
+                      _context3.next = 4;
                       break;
                     }
 
-                    _context.next = 3;
+                    _context3.next = 3;
                     return delay(50);
 
                   case 3:
@@ -749,10 +805,10 @@ var Subscriber = /*#__PURE__*/function () {
 
                   case 4:
                   case "end":
-                    return _context.stop();
+                    return _context3.stop();
                 }
               }
-            }, _callee);
+            }, _callee3);
           }));
         });
       });

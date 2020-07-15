@@ -1,13 +1,7 @@
 import { RxCollection, RxDocument, RxQuery } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
-
 import render, { RenderOptions } from './render/es6'
 
-const delay = function (value: number) {
-  return new Promise(resolve =>
-    setTimeout(() => resolve(), value)
-  )
-}
 
 /**
  * Single RXCollection subscriber interface
@@ -91,8 +85,6 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     return this.ids.length
   }
 
-  readonly query ?: RxQuery
-
   name: string = 'unnamed'
   context: string = 'main'
 
@@ -144,8 +136,8 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     }
 
     // Register the reaction on criteria change
-    reaction(() => ({ ...this.criteria }), () => {
-      this.kill = this.subscribe()
+    reaction(() => ({ ...this.criteria }), async () => {
+      this.kill = await this.subscribe()
     }, { fireImmediately })
 
     // if (process && process.browser) {
@@ -174,20 +166,19 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  protected subscribe () {
+  protected async subscribe () {
     this.fetching = true
 
-    this.query = this.collection
+    this.collection
       .find({ selector: this.filter })
       .limit(this.paging)
       .sort(toJS(this.criteria.sort))
-      // .exec()
-
-    this.query.$.subscribe(docs => {
-      if (!this.subscribed) this.subscribed = true
-      this.documents = docs
-      this.fetching = false
-    })
+      .$
+      .subscribe(docs => {
+        if (!this.subscribed) this.subscribed = true
+        this.documents = docs
+        this.fetching = false
+      })
 
     return this.collection.destroy.bind(this.collection)
   }
@@ -204,18 +195,18 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       this.options &&
       this.options.multipleSelect
     ) {
-      const sSelect = (id: string) => {
-        if (this.selectedId.indexOf(id) < 0)
-          this.selectedId.push(id)
-        else
-          this.selectedId.splice(this.selectedId.indexOf(id), 1)
+      const select = (id: string | string[]) => {
+        if (typeof id === 'string') {
+          if (this.selectedId.indexOf(id) < 0)
+            this.selectedId.push(id)
+          else
+            this.selectedId.splice(this.selectedId.indexOf(id), 1)
+        } else {
+          if (id.length) id.map(_id => select(_id))
+        }
       }
 
-      if (typeof id === 'string') {
-        sSelect(id)
-      } else {
-        id.map(_id => sSelect(_id))
-      }
+      select(id)
     } else {
       this.selectedId = id !== String(this.selectedId) ? id : ''
     }
@@ -235,7 +226,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     return new Promise((resolve) => {
       reaction(() => this.fetching, (async (status) => {
         if (!status) {
-          await delay(50) // quite hacky, waits for @computeds to update
+          await this.collection.database.requestIdlePromise()
           resolve()
         }
       }))

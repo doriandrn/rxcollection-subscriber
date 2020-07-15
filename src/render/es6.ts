@@ -89,16 +89,20 @@ export default function render (opts: RenderOptions) {
   let mcrit = {}
 
   if (persistState && opts.holder) {
-    mcrit = JSON.parse(localStorage.getItem(subStorageName))
+    try {
+      mcrit = JSON.parse(localStorage.getItem(subStorageName))
+    } catch (e) {
+      console.log('wtf json parse')
+    }
     if (mcrit) {
-      const { selectedId } = mcrit
+      const { selectedId, criteria } = mcrit
       if (selectedId) {
         this.select(selectedId)
       }
+      if (criteria) {
+        this.criteria = { ...criteria }
+      }
     }
-    // if (mcrit && mcrit.selectedId) {
-    //   console.log(mcrit.selectedId)
-    // }
   }
 
   Object.keys(controls).map(control => {
@@ -282,6 +286,10 @@ export default function render (opts: RenderOptions) {
 
   reaction(() => ({ ...this.items }), (async (items) => {
     console.log('REACTIN', items)
+    const { criteria } = this
+    if (opts.persistState) {
+      localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, { criteria })))
+    }
     let itemsHTML = ''
 
     const itemsList = Object.keys(this.items)
@@ -309,16 +317,18 @@ export default function render (opts: RenderOptions) {
                 const { _doc } = item
                 const populated = await _doc[`${val[0]}_`]
 
-                if (populated.length > -1) {
-                  let tax
-                  content =
-                    populated.map(c => {
-                      if (!c) return
-                      tax = tax || c.collection.schema.jsonSchema.title
-                      return `<a href="#detail?${tax}=${itemId}">${c[val[1]]}</a>`
-                    }).join('')
-                } else {
-                  content = `<a href="#detail?${populated.collection.schema.jsonSchema.title}=${itemId}">${populated[val[1]]}</a>`
+                if (populated) {
+                  if (populated.length > -1) {
+                    let tax
+                    content =
+                      populated.map(c => {
+                        if (!c) return
+                        tax = tax || c.collection.schema.jsonSchema.title
+                        return `<a href="#detail?${tax}=${itemId}">${c[val[1]]}</a>`
+                      }).join('')
+                  } else {
+                    content = `<a href="#detail?${populated.collection.schema.jsonSchema.title}=${itemId}">${populated[val[1]]}</a>`
+                  }
                 }
               }
             } else {
