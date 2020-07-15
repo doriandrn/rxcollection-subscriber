@@ -81,11 +81,24 @@ export default function render (opts: RenderOptions) {
   el.dataset.sub = opts.name || this.collection.name
   el.dataset.ctx = opts.context || 'main'
 
+  const subStorageName = `${el.dataset.ctx}-${el.dataset.sub}`
+
   controlsEl.classList.add('controls')
   controlsEl.append(selectedControl)
 
+  let mcrit = {}
+
   if (persistState && opts.holder) {
-    localStorage
+    mcrit = JSON.parse(localStorage.getItem(subStorageName))
+    if (mcrit) {
+      const { selectedId } = mcrit
+      if (selectedId) {
+        this.select(selectedId)
+      }
+    }
+    // if (mcrit && mcrit.selectedId) {
+    //   console.log(mcrit.selectedId)
+    // }
   }
 
   Object.keys(controls).map(control => {
@@ -260,6 +273,9 @@ export default function render (opts: RenderOptions) {
         messages.multipleSelected.replace('%s', `<strong>${length}</strong>`) + `; <a>${messages.deselectAll}</a>` :
         ''
     }
+    if (opts.persistState) {
+      localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, { selectedId })))
+    }
   })
 
   const { mapRefFields } = opts
@@ -291,13 +307,19 @@ export default function render (opts: RenderOptions) {
               if (Object.keys(mapRefFields).indexOf(field) > -1) {
                 const val = mapRefFields[field].split('.')
                 const { _doc } = item
-
                 const populated = await _doc[`${val[0]}_`]
-                let tax
-                content = populated.map(c => {
-                  tax = tax || c.collection.schema.jsonSchema.title
-                  return `<a href="#detail?${tax}=${itemId}">${c[val[1]]}</a>`
-                }).join('')
+
+                if (populated.length > -1) {
+                  let tax
+                  content =
+                    populated.map(c => {
+                      if (!c) return
+                      tax = tax || c.collection.schema.jsonSchema.title
+                      return `<a href="#detail?${tax}=${itemId}">${c[val[1]]}</a>`
+                    }).join('')
+                } else {
+                  content = `<a href="#detail?${populated.collection.schema.jsonSchema.title}=${itemId}">${populated[val[1]]}</a>`
+                }
               }
             } else {
               content = item[field]
@@ -310,7 +332,9 @@ export default function render (opts: RenderOptions) {
             return `<${tag}>${content || '-'}</${tag}>` // this has to stay as minimal as this
           }))).join('')
 
-        return `<li data-id="${itemId}">${itemHTML}</li>`
+        const isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1
+
+        return `<li data-id="${itemId}" ${ isSelected ? 'class="sel"': ''}>${itemHTML}</li>`
       }))
 
       itemsEl.innerHTML = `${Array.from(itemsHTML).join('')}`

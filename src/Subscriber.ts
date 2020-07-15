@@ -198,16 +198,24 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {string} id
    * @memberof Subscriber
    */
-  @action select (id: string) {
+  @action select (id: string | string[]) {
     if (typeof this.selectedId !== 'string' &&
       this.selectedId &&
       this.options &&
       this.options.multipleSelect
     ) {
-      if (this.selectedId.indexOf(id) < 0)
-        this.selectedId.push(id)
-      else
-        this.selectedId.splice(this.selectedId.indexOf(id), 1)
+      const sSelect = (id: string) => {
+        if (this.selectedId.indexOf(id) < 0)
+          this.selectedId.push(id)
+        else
+          this.selectedId.splice(this.selectedId.indexOf(id), 1)
+      }
+
+      if (typeof id === 'string') {
+        sSelect(id)
+      } else {
+        id.map(_id => sSelect(_id))
+      }
     } else {
       this.selectedId = id !== String(this.selectedId) ? id : ''
     }

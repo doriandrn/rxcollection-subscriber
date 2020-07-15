@@ -130,7 +130,7 @@ describe('RxCollection Subscriber', () => {
             })
           })
 
-          describe('selects multiple', () => {
+          describe('selects multiple 1 by 1', () => {
             let toBeSelected: string[]
 
             beforeAll(() => {
@@ -140,6 +140,27 @@ describe('RxCollection Subscriber', () => {
 
             test('ok', () => {
               expect(subscriber.selectedId).toEqual(expect.arrayContaining(toBeSelected))
+            })
+          })
+
+          describe('selects & deselects multiple at the same time', () => {
+            let s, toBeSelected
+            beforeAll(async () => {
+              s = new Subscriber(collection, { multipleSelect: true })
+              await s.updates
+              toBeSelected = s.ids.splice(0, 3)
+            })
+
+            afterAll(() => s.kill())
+
+            beforeEach(() => { s.select(toBeSelected) })
+
+            test('selects multiple', () => {
+              expect(s.selectedId.length).toEqual(3)
+            })
+
+            test('deselects multiple', () => {
+              expect(s.selectedId.length).toEqual(0)
             })
           })
 

@@ -180,10 +180,26 @@ function render(opts) {
   });
   el.dataset.sub = opts.name || this.collection.name;
   el.dataset.ctx = opts.context || 'main';
+  var subStorageName = "".concat(el.dataset.ctx, "-").concat(el.dataset.sub);
   controlsEl.classList.add('controls');
   controlsEl.append(selectedControl);
+  var mcrit = {};
 
-  if (persistState && opts.holder) ;
+  if (persistState && opts.holder) {
+    mcrit = JSON.parse(localStorage.getItem(subStorageName));
+
+    if (mcrit) {
+      var _mcrit = mcrit,
+          selectedId = _mcrit.selectedId;
+
+      if (selectedId) {
+        this.select(selectedId);
+      }
+    } // if (mcrit && mcrit.selectedId) {
+    //   console.log(mcrit.selectedId)
+    // }
+
+  }
 
   Object.keys(controls).map(function (control) {
     var controlContainer = document.createElement('span');
@@ -346,6 +362,12 @@ function render(opts) {
       var length = selectedId.length;
       selectedControl.innerHTML = length ? messages.multipleSelected.replace('%s', "<strong>".concat(length, "</strong>")) + "; <a>".concat(messages.deselectAll, "</a>") : '';
     }
+
+    if (opts.persistState) {
+      localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, {
+        selectedId: selectedId
+      })));
+    }
   });
   var mapRefFields = opts.mapRefFields;
   mobx.reaction(function () {
@@ -374,7 +396,7 @@ function render(opts) {
                 return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
                   var _this3 = this;
 
-                  var item, drel, itemHTML;
+                  var item, drel, itemHTML, isSelected;
                   return regeneratorRuntime.wrap(function _callee2$(_context2) {
                     while (1) {
                       switch (_context2.prev = _context2.next) {
@@ -414,10 +436,16 @@ function render(opts) {
 
                                     case 7:
                                       populated = _context.sent;
-                                      content = populated.map(function (c) {
-                                        tax = tax || c.collection.schema.jsonSchema.title;
-                                        return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
-                                      }).join('');
+
+                                      if (populated.length > -1) {
+                                        content = populated.map(function (c) {
+                                          if (!c) return;
+                                          tax = tax || c.collection.schema.jsonSchema.title;
+                                          return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
+                                        }).join('');
+                                      } else {
+                                        content = "<a href=\"#detail?".concat(populated.collection.schema.jsonSchema.title, "=").concat(itemId, "\">").concat(populated[val[1]], "</a>");
+                                      }
 
                                     case 9:
                                       _context.next = 12;
@@ -446,9 +474,10 @@ function render(opts) {
                         case 5:
                           _context2.t1 = _context2.sent;
                           itemHTML = _context2.t0.from.call(_context2.t0, _context2.t1).join('');
-                          return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\">").concat(itemHTML, "</li>"));
+                          isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1;
+                          return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\" ").concat(isSelected ? 'class="sel"' : '', ">").concat(itemHTML, "</li>"));
 
-                        case 8:
+                        case 9:
                         case "end":
                           return _context2.stop();
                       }
@@ -617,7 +646,7 @@ var Subscriber = /*#__PURE__*/function () {
       if (typeof this.selectedId !== 'string' && this.selectedId && this.options && this.options.multipleSelect) {
         if (this.selectedId.indexOf(id) < 0) this.selectedId.push(id);else this.selectedId.splice(this.selectedId.indexOf(id), 1);
       } else {
-        this.selectedId = id;
+        this.selectedId = id !== String(this.selectedId) ? id : '';
       }
     }
     /**
