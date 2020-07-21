@@ -40,25 +40,20 @@ const defaultMessages: RendererI18n = {
  * @param {RenderOptions} opts
  * @memberof Subscriber
  */
-export default function render (opts: RenderOptions) {
+export default async function render (opts: RenderOptions) {
   if (!document)
     throw new Error('Render function only works in browser so far.')
 
-  const { selector } = opts
-
-  // Default messages object if none supplied
-  const messages = Object.assign({}, { ...defaultMessages }, { ...opts.messages })
-
-  // default is true
-  const persistState = opts && opts.persistState !== false
+  const { selector, mapRefFields } = opts
 
   const el = document.querySelector(selector)
   if (!el)
     throw new Error(`Could not find selector ${selector}`)
 
-  const header = document.createElement('li')
-  const controlsEl = document.createElement('div')
-  const selectedControl = document.createElement('span')
+  // Default messages object if none supplied
+  const messages = Object.assign({}, { ...defaultMessages }, { ...opts.messages })
+
+  const persistState = opts && opts.persistState !== false // default is true
 
   const controls = {
     limit: { type: 'number' },
@@ -74,9 +69,107 @@ export default function render (opts: RenderOptions) {
 
   const schemaFields = Object
     .keys(properties)
-    .filter(field => {
-      return field.indexOf('_') !== 0
-    })
+    .filter(field => field.indexOf('_') !== 0)
+
+  reaction(() => ({ ...this.items }), (async (items) => {
+    const { ids } = this
+    let itemsHTML = ''
+
+    console.log(ids.length, selector)
+
+    el.classList.add('fetching')
+
+    if (ids.length) {
+      itemsHTML = await Promise.all(ids.map(async (itemId, index) => {
+        const item = items[itemId]
+        const drel = opts && opts.asTable ?
+        schemaFields :
+        Object.keys(item)
+
+        const itemHTML = Array.from(await Promise.all(
+          drel
+          .filter(field =>  field.indexOf('_') !== 0)
+          .sort((a, b) => schemaFields.indexOf(a) - schemaFields.indexOf(b))
+          .map(async (field, i) => {
+            let tag = i === 0 ? 'strong' : 'span'
+            let content
+
+            // populate fields as req in mapRefFields
+            if (mapRefFields && mapRefFields[field]) {
+              if (Object.keys(mapRefFields).indexOf(field) > -1) {
+                const val = mapRefFields[field].split('.')
+                const { _doc } = item
+                const populated = await _doc[`${val[0]}_`]
+
+                if (populated) {
+                  if (populated.length > -1) {
+                    let tax
+                    content =
+                      populated.map(c => {
+                        if (!c) return
+                        tax = tax || c.collection.schema.jsonSchema.title
+                        return `<a href="#detail?${tax}=${itemId}">${c[val[1]]}</a>`
+                      }).join('')
+                  } else {
+                    content = `<a href="#detail?${populated.collection.schema.jsonSchema.title}=${itemId}">${populated[val[1]]}</a>`
+                  }
+                }
+              }
+            } else {
+              content = item[field]
+            }
+
+            if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
+              tag = 'figure'
+              content = `<img src="${content}" />`
+            }
+            return `<${tag}>${content || '-'}</${tag}>` // this has to stay as minimal as this
+          }))).join('')
+
+        const isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1
+
+        return `<li data-id="${itemId}" ${ isSelected ? 'class="sel"': ''}>${itemHTML}</li>`
+      }))
+
+      itemsEl.innerHTML = `${Array.from(itemsHTML).join('')}`
+      if (opts.asTable) itemsEl.prepend(header)
+
+      if (!el.querySelector('.items')) {
+        el.append(itemsEl)
+      }
+
+      if (!el.querySelector('.controls')) {
+        el.prepend(controlsEl)
+      }
+
+    } else {
+      el.innerHTML = el.innerHTML + `<p>${messages.emptyState}</p>`
+    }
+
+    el.classList.remove('fetching')
+    console.log('Done rendering', selector)
+  }), { fireImmediately: true })
+
+  reaction(() => typeof this.selectedId === 'object' ? [ ...this.selectedId ] : this.selectedId, ids => {
+    const { selectedId } = this
+    if (typeof selectedId === 'object') {
+      const { length } = selectedId
+      selectedControl.innerHTML = length ?
+        messages.multipleSelected.replace('%s', `<strong>${length}</strong>`) + `; <a>${messages.deselectAll}</a>` :
+        ''
+    }
+    if (persistState) {
+      localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, { selectedId })))
+    }
+  })
+
+
+
+  const header = document.createElement('li')
+  const controlsEl = document.createElement('div')
+  const selectedControl = document.createElement('span')
+
+
 
   el.dataset.sub = opts.name || this.collection.name
   el.dataset.ctx = opts.context || 'main'
@@ -268,100 +361,13 @@ export default function render (opts: RenderOptions) {
   const itemsEl = document.createElement('ol')
   itemsEl.start = 0
   if (opts.asTable) itemsEl.classList.add('table')
+  console.log('salut', selector)
 
-  reaction(() => typeof this.selectedId === 'object' ? [ ...this.selectedId ] : this.selectedId, ids => {
-    const { selectedId } = this
-    if (typeof selectedId === 'object') {
-      const { length } = selectedId
-      selectedControl.innerHTML = length ?
-        messages.multipleSelected.replace('%s', `<strong>${length}</strong>`) + `; <a>${messages.deselectAll}</a>` :
-        ''
-    }
-    if (opts.persistState) {
-      localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, { selectedId })))
-    }
-  })
-
-  const { mapRefFields } = opts
-
-  reaction(() => ({ ...this.items }), (async (items) => {
-    console.log('REACTIN', items)
-    const { criteria } = this
-    if (opts.persistState) {
+  if (persistState) {
+    reaction(() => ({ ...this.criteria }), criteria => {
       localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, { criteria })))
-    }
-    let itemsHTML = ''
+    })
+  }
 
-    const itemsList = Object.keys(this.items)
-    el.classList.add('fetching')
 
-    if (itemsList.length) {
-      itemsHTML = await Promise.all(itemsList.map(async (itemId, index) => {
-        const item = this.items[itemId]
-        const drel = opts && opts.asTable ?
-        schemaFields :
-        Object.keys(item)
-
-        const itemHTML = Array.from(await Promise.all(
-          drel
-          .filter(field =>  field.indexOf('_') !== 0)
-          .sort((a, b) => schemaFields.indexOf(a) - schemaFields.indexOf(b))
-          .map(async (field, i) => {
-            let tag = i === 0 ? 'strong' : 'span'
-            let content
-
-            // populate fields as req in mapRefFields
-            if (mapRefFields && mapRefFields[field]) {
-              if (Object.keys(mapRefFields).indexOf(field) > -1) {
-                const val = mapRefFields[field].split('.')
-                const { _doc } = item
-                const populated = await _doc[`${val[0]}_`]
-
-                if (populated) {
-                  if (populated.length > -1) {
-                    let tax
-                    content =
-                      populated.map(c => {
-                        if (!c) return
-                        tax = tax || c.collection.schema.jsonSchema.title
-                        return `<a href="#detail?${tax}=${itemId}">${c[val[1]]}</a>`
-                      }).join('')
-                  } else {
-                    content = `<a href="#detail?${populated.collection.schema.jsonSchema.title}=${itemId}">${populated[val[1]]}</a>`
-                  }
-                }
-              }
-            } else {
-              content = item[field]
-            }
-
-            if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
-              tag = 'figure'
-              content = `<img src="${content}" />`
-            }
-            return `<${tag}>${content || '-'}</${tag}>` // this has to stay as minimal as this
-          }))).join('')
-
-        const isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1
-
-        return `<li data-id="${itemId}" ${ isSelected ? 'class="sel"': ''}>${itemHTML}</li>`
-      }))
-
-      itemsEl.innerHTML = `${Array.from(itemsHTML).join('')}`
-      if (opts.asTable) itemsEl.prepend(header)
-
-      if (!el.querySelector('.items')) {
-        el.append(itemsEl)
-      }
-
-      if (!el.querySelector('.controls')) {
-        el.prepend(controlsEl)
-      }
-
-    } else {
-      el.innerHTML = el.innerHTML + `<p>${messages.emptyState}</p>`
-    }
-
-    el.classList.remove('fetching')
-  }))
 }

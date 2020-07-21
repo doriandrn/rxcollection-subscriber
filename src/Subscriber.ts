@@ -26,7 +26,8 @@ type SubscriberOptions = {
   progressivePaging ?: boolean
   multipleSelect ?: boolean
   autoSelectOnCRUD ?: boolean // whenever an items is added / updated -> it's id gets selected
-  fields ?: string[]
+  fields ?: string[],
+  context ?: string
 }
 
 export type Criteria = {
@@ -57,7 +58,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
   @observable subscribed: Boolean = false
 
-  @observable selectedId ?: string | string[]
+  @observable selectedId : string | string[] = ''
   @observable activeId ?: string
 
   @computed get ids () { return Object.keys(this.items) }
@@ -66,7 +67,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     const { fields } = this
     return Object.assign({},
       ...this.documents
-        .map(_doc => ({ [_doc[this.primaryPath]]: Object.assign({}, fields ?
+        .map(_doc => ({ [_doc[this.primaryPath]]: Object.assign({}, fields && fields !== 'all' ?
             Object.fromEntries(fields.map(f => [f, _doc[f]])) :
             _doc._data, { _doc }
         )}))
@@ -87,11 +88,13 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
   name: string = 'unnamed'
   context: string = 'main'
+  readonly fields: string[] | 'all' = 'all'
 
   protected get primaryPath () {
     return this.collection.schema.primaryPath || '_id'
   }
 
+  render : (opts : RenderOptions) => void = () => {}
   kill : () => void = () => {}
 
   /**
@@ -166,7 +169,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  protected async subscribe () {
+  protected subscribe () {
     this.fetching = true
 
     this.collection
@@ -176,6 +179,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       .$
       .subscribe(docs => {
         if (!this.subscribed) this.subscribed = true
+        console.log('zzz', this.name, docs)
         this.documents = docs
         this.fetching = false
       })

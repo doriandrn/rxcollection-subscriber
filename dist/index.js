@@ -151,396 +151,420 @@ var defaultMessages = {
  */
 
 function render(opts) {
-  var _this = this;
+  return __awaiter(this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+    var _this = this;
 
-  if (!document) throw new Error('Render function only works in browser so far.');
-  var selector = opts.selector; // Default messages object if none supplied
+    var selector, mapRefFields, el, messages, persistState, controls, _this$collection$sche, indexes, properties, schemaFields, header, controlsEl, selectedControl, subStorageName, mcrit, _mcrit, selectedId, criteria, itemsEl;
 
-  var messages = Object.assign({}, Object.assign({}, defaultMessages), Object.assign({}, opts.messages)); // default is true
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            if (document) {
+              _context4.next = 2;
+              break;
+            }
 
-  var persistState = opts && opts.persistState !== false;
-  var el = document.querySelector(selector);
-  if (!el) throw new Error("Could not find selector ".concat(selector));
-  var header = document.createElement('li');
-  var controlsEl = document.createElement('div');
-  var selectedControl = document.createElement('span');
-  var controls = {
-    limit: {
-      type: 'number'
-    },
-    filter: {
-      type: 'text'
-    }
-  };
-  var _this$collection$sche = this.collection.schema,
-      indexes = _this$collection$sche.indexes,
-      properties = _this$collection$sche.jsonSchema.properties;
-  var schemaFields = Object.keys(properties).filter(function (field) {
-    return field.indexOf('_') !== 0;
-  });
-  el.dataset.sub = opts.name || this.collection.name;
-  el.dataset.ctx = opts.context || 'main';
-  var subStorageName = "".concat(el.dataset.ctx, "-").concat(el.dataset.sub);
-  controlsEl.classList.add('controls');
-  controlsEl.append(selectedControl);
-  var mcrit = {};
+            throw new Error('Render function only works in browser so far.');
 
-  if (persistState && opts.holder) {
-    try {
-      mcrit = JSON.parse(localStorage.getItem(subStorageName));
-    } catch (e) {
-      console.log('wtf json parse');
-    }
+          case 2:
+            selector = opts.selector, mapRefFields = opts.mapRefFields;
+            el = document.querySelector(selector);
 
-    if (mcrit) {
-      var _mcrit = mcrit,
-          selectedId = _mcrit.selectedId,
-          criteria = _mcrit.criteria;
+            if (el) {
+              _context4.next = 6;
+              break;
+            }
 
-      if (selectedId) {
-        this.select(selectedId);
-      }
+            throw new Error("Could not find selector ".concat(selector));
 
-      if (criteria) {
-        this.criteria = Object.assign({}, criteria);
-      }
-    }
-  }
+          case 6:
+            // Default messages object if none supplied
+            messages = Object.assign({}, Object.assign({}, defaultMessages), Object.assign({}, opts.messages));
+            persistState = opts && opts.persistState !== false; // default is true
 
-  Object.keys(controls).map(function (control) {
-    var controlContainer = document.createElement('span');
-    var label = document.createElement('label');
-    label.textContent = String(control).toUpperCase();
-
-    switch (control) {
-      case 'limit':
-        var input = document.createElement('input');
-        input.type = controls[control].type;
-        input.value = _this.criteria[control];
-        input.addEventListener('change', function (e) {
-          _this.criteria[control] = e.target.value;
-        });
-        controlContainer.append(input);
-        break;
-
-      case 'filter':
-        var but = document.createElement('button');
-        but.textContent = messages.filters.new;
-        var connector = document.createElement('select');
-        var fieldSelect = document.createElement('select');
-        var operator = document.createElement('select');
-        var valInput = document.createElement('input');
-
-        var ops = function ops(fieldType) {
-          return fieldType === 'number' ? {
-            lt: '<',
-            lte: '<=',
-            gt: '>',
-            gte: '>=',
-            eq: '='
-          } : {
-            in: 'contains',
-            nin: 'does not contain',
-            regex: 'RegEx'
-          };
-        };
-
-        schemaFields.map(function (field) {
-          var op = document.createElement('option');
-          op.value = field;
-          op.textContent = field;
-          fieldSelect.append(op);
-        }); // const valChange = (operator, input, field) => e => {
-        //   const { value } = e.target
-        //   if (!value) return
-        //   but.disabled = false
-        //   const filterValue = { [field.value]: {
-        //     [`$${operator.value}`]: input.type === 'number' ?
-        //       Number(input.value) :
-        //       String(input.value)
-        //   }}
-        //   console.log('fv', filterValue)
-        //   this.criteria.filter = filterValue
-        // }
-
-        fieldSelect.name = 'field';
-
-        var fieldChange = function fieldChange(operator, input) {
-          return function (e) {
-            var value = e.target.value;
-            var fieldType = properties[value].type;
-            input.setAttribute('type', fieldType === 'number' ? 'number' : 'text');
-            input.value = null;
-
-            var _ops = ops(fieldType);
-
-            operator.innerHTML = '';
-            Object.keys(_ops).map(function (opId) {
-              var opEl = document.createElement('option');
-              opEl.value = opId;
-              opEl.textContent = _ops[opId];
-              operator.append(opEl);
+            controls = {
+              limit: {
+                type: 'number'
+              },
+              filter: {
+                type: 'text'
+              }
+            };
+            _this$collection$sche = this.collection.schema, indexes = _this$collection$sche.indexes, properties = _this$collection$sche.jsonSchema.properties;
+            schemaFields = Object.keys(properties).filter(function (field) {
+              return field.indexOf('_') !== 0;
             });
-          };
-        };
+            mobx.reaction(function () {
+              return Object.assign({}, _this.items);
+            }, function (items) {
+              return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var _this2 = this;
 
-        var filterEntry = document.createElement('div');
-        filterEntry.append(fieldSelect, operator, valInput);
+                var ids, itemsHTML;
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                  while (1) {
+                    switch (_context3.prev = _context3.next) {
+                      case 0:
+                        ids = this.ids;
+                        itemsHTML = '';
+                        console.log(ids.length, selector);
+                        el.classList.add('fetching');
 
-        var addFilter = function addFilter() {
-          var filterEl = document.createElement('span');
-          var removeFilter = document.createElement('button');
-          filterEl.classList.add('filter');
-          filterEl.append(removeFilter);
-          removeFilter.textContent = messages.filters.trash;
-          var f = filterEntry.cloneNode(true);
-          var filterIndex = Array.prototype.indexOf.call(controlContainer, f);
-          f.addEventListener('filterUpdated', function (e) {
-            var index = e.detail;
-            var item = filterEl.children[index + 1];
-            console.log('x', index, item);
-            var filters = Array.from(item.children).map(function (c) {
-              return c.value;
+                        if (!ids.length) {
+                          _context3.next = 14;
+                          break;
+                        }
+
+                        _context3.next = 7;
+                        return Promise.all(ids.map(function (itemId, index) {
+                          return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                            var _this3 = this;
+
+                            var item, drel, itemHTML, isSelected;
+                            return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                              while (1) {
+                                switch (_context2.prev = _context2.next) {
+                                  case 0:
+                                    item = items[itemId];
+                                    drel = opts && opts.asTable ? schemaFields : Object.keys(item);
+                                    _context2.t0 = Array;
+                                    _context2.next = 5;
+                                    return Promise.all(drel.filter(function (field) {
+                                      return field.indexOf('_') !== 0;
+                                    }).sort(function (a, b) {
+                                      return schemaFields.indexOf(a) - schemaFields.indexOf(b);
+                                    }).map(function (field, i) {
+                                      return __awaiter(_this3, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                                        var tag, content, val, _doc, populated, tax;
+
+                                        return regeneratorRuntime.wrap(function _callee$(_context) {
+                                          while (1) {
+                                            switch (_context.prev = _context.next) {
+                                              case 0:
+                                                tag = i === 0 ? 'strong' : 'span';
+
+                                                if (!(mapRefFields && mapRefFields[field])) {
+                                                  _context.next = 11;
+                                                  break;
+                                                }
+
+                                                if (!(Object.keys(mapRefFields).indexOf(field) > -1)) {
+                                                  _context.next = 9;
+                                                  break;
+                                                }
+
+                                                val = mapRefFields[field].split('.');
+                                                _doc = item._doc;
+                                                _context.next = 7;
+                                                return _doc["".concat(val[0], "_")];
+
+                                              case 7:
+                                                populated = _context.sent;
+
+                                                if (populated) {
+                                                  if (populated.length > -1) {
+                                                    content = populated.map(function (c) {
+                                                      if (!c) return;
+                                                      tax = tax || c.collection.schema.jsonSchema.title;
+                                                      return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
+                                                    }).join('');
+                                                  } else {
+                                                    content = "<a href=\"#detail?".concat(populated.collection.schema.jsonSchema.title, "=").concat(itemId, "\">").concat(populated[val[1]], "</a>");
+                                                  }
+                                                }
+
+                                              case 9:
+                                                _context.next = 12;
+                                                break;
+
+                                              case 11:
+                                                content = item[field];
+
+                                              case 12:
+                                                if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
+                                                  tag = 'figure';
+                                                  content = "<img src=\"".concat(content, "\" />");
+                                                }
+
+                                                return _context.abrupt("return", "<".concat(tag, ">").concat(content || '-', "</").concat(tag, ">"));
+
+                                              case 14:
+                                              case "end":
+                                                return _context.stop();
+                                            }
+                                          }
+                                        }, _callee);
+                                      }));
+                                    }));
+
+                                  case 5:
+                                    _context2.t1 = _context2.sent;
+                                    itemHTML = _context2.t0.from.call(_context2.t0, _context2.t1).join('');
+                                    isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1;
+                                    return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\" ").concat(isSelected ? 'class="sel"' : '', ">").concat(itemHTML, "</li>"));
+
+                                  case 9:
+                                  case "end":
+                                    return _context2.stop();
+                                }
+                              }
+                            }, _callee2, this);
+                          }));
+                        }));
+
+                      case 7:
+                        itemsHTML = _context3.sent;
+                        itemsEl.innerHTML = "".concat(Array.from(itemsHTML).join(''));
+                        if (opts.asTable) itemsEl.prepend(header);
+
+                        if (!el.querySelector('.items')) {
+                          el.append(itemsEl);
+                        }
+
+                        if (!el.querySelector('.controls')) {
+                          el.prepend(controlsEl);
+                        }
+
+                        _context3.next = 15;
+                        break;
+
+                      case 14:
+                        el.innerHTML = el.innerHTML + "<p>".concat(messages.emptyState, "</p>");
+
+                      case 15:
+                        el.classList.remove('fetching');
+                        console.log('Done rendering', selector);
+
+                      case 17:
+                      case "end":
+                        return _context3.stop();
+                    }
+                  }
+                }, _callee3, this);
+              }));
+            }, {
+              fireImmediately: true
             });
-            var isValid = true;
-            filters.forEach(function (val) {
-              if (!val) isValid = false;
+            mobx.reaction(function () {
+              return _typeof(_this.selectedId) === 'object' ? _toConsumableArray(_this.selectedId) : _this.selectedId;
+            }, function (ids) {
+              var selectedId = _this.selectedId;
+
+              if (_typeof(selectedId) === 'object') {
+                var length = selectedId.length;
+                selectedControl.innerHTML = length ? messages.multipleSelected.replace('%s', "<strong>".concat(length, "</strong>")) + "; <a>".concat(messages.deselectAll, "</a>") : '';
+              }
+
+              if (persistState) {
+                localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, {
+                  selectedId: selectedId
+                })));
+              }
             });
-            console.log(filters, isValid);
-            if (!isValid) return;
-            but.disabled = false; // this.criteria.filter = filter
-          });
-          Array.from(f.children).forEach(function (child, i) {
-            var event = new CustomEvent('filterUpdated', {
-              detail: filterIndex
+            header = document.createElement('li');
+            controlsEl = document.createElement('div');
+            selectedControl = document.createElement('span');
+            el.dataset.sub = opts.name || this.collection.name;
+            el.dataset.ctx = opts.context || 'main';
+            subStorageName = "".concat(el.dataset.ctx, "-").concat(el.dataset.sub);
+            controlsEl.classList.add('controls');
+            controlsEl.append(selectedControl);
+            mcrit = {};
+
+            if (persistState && opts.holder) {
+              try {
+                mcrit = JSON.parse(localStorage.getItem(subStorageName));
+              } catch (e) {
+                console.log('wtf json parse');
+              }
+
+              if (mcrit) {
+                _mcrit = mcrit, selectedId = _mcrit.selectedId, criteria = _mcrit.criteria;
+
+                if (selectedId) {
+                  this.select(selectedId);
+                }
+
+                if (criteria) {
+                  this.criteria = Object.assign({}, criteria);
+                }
+              }
+            }
+
+            Object.keys(controls).map(function (control) {
+              var controlContainer = document.createElement('span');
+              var label = document.createElement('label');
+              label.textContent = String(control).toUpperCase();
+
+              switch (control) {
+                case 'limit':
+                  var input = document.createElement('input');
+                  input.type = controls[control].type;
+                  input.value = _this.criteria[control];
+                  input.addEventListener('change', function (e) {
+                    _this.criteria[control] = e.target.value;
+                  });
+                  controlContainer.append(input);
+                  break;
+
+                case 'filter':
+                  var but = document.createElement('button');
+                  but.textContent = messages.filters.new;
+                  var connector = document.createElement('select');
+                  var fieldSelect = document.createElement('select');
+                  var operator = document.createElement('select');
+                  var valInput = document.createElement('input');
+
+                  var ops = function ops(fieldType) {
+                    return fieldType === 'number' ? {
+                      lt: '<',
+                      lte: '<=',
+                      gt: '>',
+                      gte: '>=',
+                      eq: '='
+                    } : {
+                      in: 'contains',
+                      nin: 'does not contain',
+                      regex: 'RegEx'
+                    };
+                  };
+
+                  schemaFields.map(function (field) {
+                    var op = document.createElement('option');
+                    op.value = field;
+                    op.textContent = field;
+                    fieldSelect.append(op);
+                  }); // const valChange = (operator, input, field) => e => {
+                  //   const { value } = e.target
+                  //   if (!value) return
+                  //   but.disabled = false
+                  //   const filterValue = { [field.value]: {
+                  //     [`$${operator.value}`]: input.type === 'number' ?
+                  //       Number(input.value) :
+                  //       String(input.value)
+                  //   }}
+                  //   console.log('fv', filterValue)
+                  //   this.criteria.filter = filterValue
+                  // }
+
+                  fieldSelect.name = 'field';
+
+                  var fieldChange = function fieldChange(operator, input) {
+                    return function (e) {
+                      var value = e.target.value;
+                      var fieldType = properties[value].type;
+                      input.setAttribute('type', fieldType === 'number' ? 'number' : 'text');
+                      input.value = null;
+
+                      var _ops = ops(fieldType);
+
+                      operator.innerHTML = '';
+                      Object.keys(_ops).map(function (opId) {
+                        var opEl = document.createElement('option');
+                        opEl.value = opId;
+                        opEl.textContent = _ops[opId];
+                        operator.append(opEl);
+                      });
+                    };
+                  };
+
+                  var filterEntry = document.createElement('div');
+                  filterEntry.append(fieldSelect, operator, valInput);
+
+                  var addFilter = function addFilter() {
+                    var filterEl = document.createElement('span');
+                    var removeFilter = document.createElement('button');
+                    filterEl.classList.add('filter');
+                    filterEl.append(removeFilter);
+                    removeFilter.textContent = messages.filters.trash;
+                    var f = filterEntry.cloneNode(true);
+                    var filterIndex = Array.prototype.indexOf.call(controlContainer, f);
+                    f.addEventListener('filterUpdated', function (e) {
+                      var index = e.detail;
+                      var item = filterEl.children[index + 1];
+                      console.log('x', index, item);
+                      var filters = Array.from(item.children).map(function (c) {
+                        return c.value;
+                      });
+                      var isValid = true;
+                      filters.forEach(function (val) {
+                        if (!val) isValid = false;
+                      });
+                      console.log(filters, isValid);
+                      if (!isValid) return;
+                      but.disabled = false; // this.criteria.filter = filter
+                    });
+                    Array.from(f.children).forEach(function (child, i) {
+                      var event = new CustomEvent('filterUpdated', {
+                        detail: filterIndex
+                      });
+                      child.addEventListener('change', function () {
+                        f.dispatchEvent(event);
+                      });
+                    });
+                    f.children[0].addEventListener('change', fieldChange(f.children[1], f.children[2]));
+                    filterEl.prepend(f);
+                    removeFilter.addEventListener('click', function () {
+                      filterEl.remove();
+                      but.disabled = false;
+                    });
+                    controlContainer.append(filterEl);
+                  };
+
+                  but.addEventListener('click', function (e) {
+                    addFilter();
+                    e.target.disabled = true;
+                  });
+                  controlContainer.append(but);
+                  break;
+              }
+
+              controlContainer.append(label);
+              controlsEl.append(controlContainer);
             });
-            child.addEventListener('change', function () {
-              f.dispatchEvent(event);
+            schemaFields.map(function (field) {
+              var isSortable = indexes.length && indexes.filter(function (index) {
+                return index.indexOf(field) > -1;
+              }).length;
+              var span = document.createElement('span');
+              span.textContent = field;
+
+              if (isSortable) {
+                span.classList.add('sortable');
+                span.addEventListener('click', function () {
+                  var direction = Number(!_this.criteria.sort[field]);
+                  _this.criteria.sort = _defineProperty({}, field, direction);
+                  span.dataset.dir = direction;
+                });
+              }
+
+              header.append(span);
             });
-          });
-          f.children[0].addEventListener('change', fieldChange(f.children[1], f.children[2]));
-          filterEl.prepend(f);
-          removeFilter.addEventListener('click', function () {
-            filterEl.remove();
-            but.disabled = false;
-          });
-          controlContainer.append(filterEl);
-        };
+            itemsEl = document.createElement('ol');
+            itemsEl.start = 0;
+            if (opts.asTable) itemsEl.classList.add('table');
+            console.log('salut', selector);
 
-        but.addEventListener('click', function (e) {
-          addFilter();
-          e.target.disabled = true;
-        });
-        controlContainer.append(but);
-        break;
-    }
-
-    controlContainer.append(label);
-    controlsEl.append(controlContainer);
-  });
-  schemaFields.map(function (field) {
-    var isSortable = indexes.length && indexes.filter(function (index) {
-      return index.indexOf(field) > -1;
-    }).length;
-    var span = document.createElement('span');
-    span.textContent = field;
-
-    if (isSortable) {
-      span.classList.add('sortable');
-      span.addEventListener('click', function () {
-        var direction = Number(!_this.criteria.sort[field]);
-        _this.criteria.sort = _defineProperty({}, field, direction);
-        span.dataset.dir = direction;
-      });
-    }
-
-    header.append(span);
-  });
-  var itemsEl = document.createElement('ol');
-  itemsEl.start = 0;
-  if (opts.asTable) itemsEl.classList.add('table');
-  mobx.reaction(function () {
-    return _typeof(_this.selectedId) === 'object' ? _toConsumableArray(_this.selectedId) : _this.selectedId;
-  }, function (ids) {
-    var selectedId = _this.selectedId;
-
-    if (_typeof(selectedId) === 'object') {
-      var length = selectedId.length;
-      selectedControl.innerHTML = length ? messages.multipleSelected.replace('%s', "<strong>".concat(length, "</strong>")) + "; <a>".concat(messages.deselectAll, "</a>") : '';
-    }
-
-    if (opts.persistState) {
-      localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, {
-        selectedId: selectedId
-      })));
-    }
-  });
-  var mapRefFields = opts.mapRefFields;
-  mobx.reaction(function () {
-    return Object.assign({}, _this.items);
-  }, function (items) {
-    return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-      var _this2 = this;
-
-      var criteria, itemsHTML, itemsList;
-      return regeneratorRuntime.wrap(function _callee3$(_context3) {
-        while (1) {
-          switch (_context3.prev = _context3.next) {
-            case 0:
-              console.log('REACTIN', items);
-              criteria = this.criteria;
-
-              if (opts.persistState) {
+            if (persistState) {
+              mobx.reaction(function () {
+                return Object.assign({}, _this.criteria);
+              }, function (criteria) {
                 localStorage.setItem(subStorageName, JSON.stringify(Object.assign({}, mcrit, {
                   criteria: criteria
                 })));
-              }
+              });
+            }
 
-              itemsHTML = '';
-              itemsList = Object.keys(this.items);
-              el.classList.add('fetching');
-
-              if (!itemsList.length) {
-                _context3.next = 16;
-                break;
-              }
-
-              _context3.next = 9;
-              return Promise.all(itemsList.map(function (itemId, index) {
-                return __awaiter(_this2, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-                  var _this3 = this;
-
-                  var item, drel, itemHTML, isSelected;
-                  return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                    while (1) {
-                      switch (_context2.prev = _context2.next) {
-                        case 0:
-                          item = this.items[itemId];
-                          drel = opts && opts.asTable ? schemaFields : Object.keys(item);
-                          _context2.t0 = Array;
-                          _context2.next = 5;
-                          return Promise.all(drel.filter(function (field) {
-                            return field.indexOf('_') !== 0;
-                          }).sort(function (a, b) {
-                            return schemaFields.indexOf(a) - schemaFields.indexOf(b);
-                          }).map(function (field, i) {
-                            return __awaiter(_this3, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-                              var tag, content, val, _doc, populated, tax;
-
-                              return regeneratorRuntime.wrap(function _callee$(_context) {
-                                while (1) {
-                                  switch (_context.prev = _context.next) {
-                                    case 0:
-                                      tag = i === 0 ? 'strong' : 'span';
-
-                                      if (!(mapRefFields && mapRefFields[field])) {
-                                        _context.next = 11;
-                                        break;
-                                      }
-
-                                      if (!(Object.keys(mapRefFields).indexOf(field) > -1)) {
-                                        _context.next = 9;
-                                        break;
-                                      }
-
-                                      val = mapRefFields[field].split('.');
-                                      _doc = item._doc;
-                                      _context.next = 7;
-                                      return _doc["".concat(val[0], "_")];
-
-                                    case 7:
-                                      populated = _context.sent;
-
-                                      if (populated) {
-                                        if (populated.length > -1) {
-                                          content = populated.map(function (c) {
-                                            if (!c) return;
-                                            tax = tax || c.collection.schema.jsonSchema.title;
-                                            return "<a href=\"#detail?".concat(tax, "=").concat(itemId, "\">").concat(c[val[1]], "</a>");
-                                          }).join('');
-                                        } else {
-                                          content = "<a href=\"#detail?".concat(populated.collection.schema.jsonSchema.title, "=").concat(itemId, "\">").concat(populated[val[1]], "</a>");
-                                        }
-                                      }
-
-                                    case 9:
-                                      _context.next = 12;
-                                      break;
-
-                                    case 11:
-                                      content = item[field];
-
-                                    case 12:
-                                      if (typeof content === 'string' && content.indexOf('.jpg') === content.length - 4) {
-                                        tag = 'figure';
-                                        content = "<img src=\"".concat(content, "\" />");
-                                      }
-
-                                      return _context.abrupt("return", "<".concat(tag, ">").concat(content || '-', "</").concat(tag, ">"));
-
-                                    case 14:
-                                    case "end":
-                                      return _context.stop();
-                                  }
-                                }
-                              }, _callee);
-                            }));
-                          }));
-
-                        case 5:
-                          _context2.t1 = _context2.sent;
-                          itemHTML = _context2.t0.from.call(_context2.t0, _context2.t1).join('');
-                          isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1;
-                          return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\" ").concat(isSelected ? 'class="sel"' : '', ">").concat(itemHTML, "</li>"));
-
-                        case 9:
-                        case "end":
-                          return _context2.stop();
-                      }
-                    }
-                  }, _callee2, this);
-                }));
-              }));
-
-            case 9:
-              itemsHTML = _context3.sent;
-              itemsEl.innerHTML = "".concat(Array.from(itemsHTML).join(''));
-              if (opts.asTable) itemsEl.prepend(header);
-
-              if (!el.querySelector('.items')) {
-                el.append(itemsEl);
-              }
-
-              if (!el.querySelector('.controls')) {
-                el.prepend(controlsEl);
-              }
-
-              _context3.next = 17;
-              break;
-
-            case 16:
-              el.innerHTML = el.innerHTML + "<p>".concat(messages.emptyState, "</p>");
-
-            case 17:
-              el.classList.remove('fetching');
-
-            case 18:
-            case "end":
-              return _context3.stop();
-          }
+          case 30:
+          case "end":
+            return _context4.stop();
         }
-      }, _callee3, this);
-    }));
-  });
+      }
+    }, _callee4, this);
+  }));
 }
 
-var delay = function delay(value) {
-  return new Promise(function (resolve) {
-    return setTimeout(function () {
-      return resolve();
-    }, value);
-  });
-};
 /**
  * Creates a new data sucker for any RxCollection
  * refreshes data on criteria changes
@@ -548,7 +572,6 @@ var delay = function delay(value) {
  * @class Subscriber
  * @implements {RxSubscriber}
  */
-
 
 var Subscriber = /*#__PURE__*/function () {
   /**
@@ -576,8 +599,12 @@ var Subscriber = /*#__PURE__*/function () {
     };
     this.fetching = false;
     this.subscribed = false;
+    this.selectedId = '';
     this.name = 'unnamed';
     this.context = 'main';
+    this.fields = 'all';
+
+    this.render = function () {};
 
     this.kill = function () {};
 
@@ -652,30 +679,18 @@ var Subscriber = /*#__PURE__*/function () {
      * @memberof Subscriber
      */
     value: function subscribe() {
-      return __awaiter(this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-        var _this2 = this;
+      var _this2 = this;
 
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                this.fetching = true;
-                this.collection.find({
-                  selector: this.filter
-                }).limit(this.paging).sort(mobx.toJS(this.criteria.sort)).$.subscribe(function (docs) {
-                  if (!_this2.subscribed) _this2.subscribed = true;
-                  _this2.documents = docs;
-                  _this2.fetching = false;
-                });
-                return _context2.abrupt("return", this.collection.destroy.bind(this.collection));
-
-              case 3:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
+      this.fetching = true;
+      this.collection.find({
+        selector: this.filter
+      }).limit(this.paging).sort(mobx.toJS(this.criteria.sort)).$.subscribe(function (docs) {
+        if (!_this2.subscribed) _this2.subscribed = true;
+        console.log('zzz', _this2.name, docs);
+        _this2.documents = docs;
+        _this2.fetching = false;
+      });
+      return this.collection.destroy.bind(this.collection);
     }
     /**
      * (De)selects an item by it's id
@@ -729,7 +744,7 @@ var Subscriber = /*#__PURE__*/function () {
 
       var fields = this.fields;
       return Object.assign.apply(Object, [{}].concat(_toConsumableArray(this.documents.map(function (_doc) {
-        return _defineProperty({}, _doc[_this4.primaryPath], Object.assign({}, fields ? Object.fromEntries(fields.map(function (f) {
+        return _defineProperty({}, _doc[_this4.primaryPath], Object.assign({}, fields && fields !== 'all' ? Object.fromEntries(fields.map(function (f) {
           return [f, _doc[f]];
         })) : _doc._data, {
           _doc: _doc
@@ -786,29 +801,28 @@ var Subscriber = /*#__PURE__*/function () {
         mobx.reaction(function () {
           return _this7.fetching;
         }, function (status) {
-          return __awaiter(_this7, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-            return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          return __awaiter(_this7, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+            return regeneratorRuntime.wrap(function _callee2$(_context2) {
               while (1) {
-                switch (_context3.prev = _context3.next) {
+                switch (_context2.prev = _context2.next) {
                   case 0:
                     if (status) {
-                      _context3.next = 4;
+                      _context2.next = 4;
                       break;
                     }
 
-                    _context3.next = 3;
-                    return delay(50);
+                    _context2.next = 3;
+                    return this.collection.database.requestIdlePromise();
 
                   case 3:
-                    // quite hacky, waits for @computeds to update
                     resolve();
 
                   case 4:
                   case "end":
-                    return _context3.stop();
+                    return _context2.stop();
                 }
               }
-            }, _callee3);
+            }, _callee2, this);
           }));
         });
       });

@@ -413,4 +413,19 @@ describe('RxCollection Subscriber', () => {
     })
 
   })
+
+  describe('functional', () => {
+    let s
+    // beforeAll(() => {
+    //   s = new Subscriber(collection, {})
+    // })
+
+    // beforeEach(async () => {
+
+    // })
+
+    // afterAll(() => {
+    //   s.kill()
+    // })
+  })
 })
