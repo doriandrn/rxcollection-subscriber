@@ -27,7 +27,8 @@ type SubscriberOptions = {
   multipleSelect ?: boolean
   autoSelectOnCRUD ?: boolean // whenever an items is added / updated -> it's id gets selected
   fields ?: string[],
-  context ?: string
+  context ?: string,
+  holder ?: Subscriber<any>[]
 }
 
 export type Criteria = {
@@ -179,7 +180,6 @@ export default class Subscriber<N extends string> implements RxSubscriber {
       .$
       .subscribe(docs => {
         if (!this.subscribed) this.subscribed = true
-        console.log('zzz', this.name, docs)
         this.documents = docs
         this.fetching = false
       })

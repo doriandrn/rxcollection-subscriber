@@ -1,6 +1,6 @@
 # RxCollection Subscriber
 
-is a powerful tool built on top of RxCollection that allows you to efficiently display real-time data coming from a RxDB in any way you can imagine.
+a powerful tool built on top of RxCollection that allows you to efficiently display real-time data coming from a RxDB in any way you can imagine.
 
 Renderless component that reacts on VM (criteria) changes for RxDB's collections (RxCollection).
 
@@ -39,16 +39,19 @@ console.log(sub1.selectedDoc)
 
 | key | type | description | default |
 |:------|:---- |:------------|:---------|
-| criteria | Criteria | initial criteria to subscribe with. also applies to lazy subscribers | `{ limit: 25, index: 0, sort: {}, filter: undefined }`
-| multipleSelect | bool | allows multiple ids & documents to be selected | false
+| criteria | Criteria | Initial criteria to subscribe with. also applies to lazy subscribers | `{ limit: 25, index: 0, sort: {}, filter: undefined }`
+| fields | all / string[] | Fields the .items holder should contain for items. Fields starting with `_` such as `_id` or `_rev` are always contained. | 'all'
+| multipleSelect | bool | Allows multiple ids & documents to be selected | false
 | lazy | bool | does not subscribe on construct | false
 | progressivePaging | bool | whenever the `index` key in criteria changes / increases, results will not be paginated but appended to previous | false
 | autoSelectOnCRUD | bool | if a new document gets added / removed from the collection, it'll immediately get selected | false
 
 ### API
 
-| .select(ids) | |
-|----|----|----|
+| command | description |
+| :----- | :----------- |
+| `select( ids : string | string[] )` | This works in 2 ways. With `multipleSelect` option enabled it adds / removees the itemId from the .selectedIds list, otherwise it just selects / deselects that item. If the render function is used, this is cached in localStorage |
+| `render( options ?: RenderOptions )` | Renders the data. Only works in browser, client-side. |
 
 ## Contribute
 

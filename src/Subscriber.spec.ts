@@ -416,16 +416,31 @@ describe('RxCollection Subscriber', () => {
 
   describe('functional', () => {
     let s
-    // beforeAll(() => {
-    //   s = new Subscriber(collection, {})
-    // })
+    const limit = 3
+    const a = new Array(20)
 
-    // beforeEach(async () => {
+    beforeAll(() => {
+      s = new Subscriber(collection, { criteria: { limit }})
+    })
 
-    // })
+    beforeEach(async () => {
+      await collection.insert({ name: 'whatever', dummyLevel: 33})
+    })
 
-    // afterAll(() => {
-    //   s.kill()
-    // })
+    afterEach(async () => {
+      await collection.insert({ name: 'whatever', dummyLevel: 33})
+    })
+
+    describe('updates ok', () => {
+      a.map(x => {
+        test('limit remains the same %p', () => {
+          expect(s.ids.length).toEqual(limit)
+        })
+      })
+    })
+
+    afterAll(() => {
+      s.kill()
+    })
   })
 })

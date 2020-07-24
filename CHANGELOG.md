@@ -1,4 +1,12 @@
 <a name="1.0.9"></a>
+1.0.10 (2020-07-24)
+
+- Removed the hacky delay from the .updates core function;
+- Added 'fields' to constructor options which allows the selection of fields' names to have in the items container;
+- [WIP] Added a render function that renders the data in plain HTML making everything reactive without the need of a VDOM. This is still work in progress and more updates to come soon;
+- First working example (HTML version) can be found now [here]()
+
+<a name="1.0.9"></a>
 1.0.9 (2020-06-25)
 
 - Browser version fix (test - wip)
