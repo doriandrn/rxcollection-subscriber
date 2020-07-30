@@ -1,7 +1,6 @@
-import { RxCollection, RxDocument, RxQuery } from 'rxdb'
+import { RxCollection, RxDocument } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
 import render, { RenderOptions } from './render/es6'
-
 
 /**
  * Single RXCollection subscriber interface
@@ -15,8 +14,8 @@ interface RxSubscriber {
   edit (id: string): RxDocument<any>
   render (opts: RenderOptions): void
 
-  // subscribe (criteria ?: Criteria): Function // Subscription
-  // kill (): void
+  subscribe (criteria ?: Criteria): Function // Subscription
+  kill (): void
 }
 
 type SubscriberOptions = {
@@ -174,14 +173,14 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     this.fetching = true
 
     this.collection
-      .find({ selector: this.filter })
+      .find({ selector: this.filter || {} })
       .limit(this.paging)
       .sort(toJS(this.criteria.sort))
       .$
       .subscribe(docs => {
-        if (!this.subscribed) this.subscribed = true
         this.documents = docs
         this.fetching = false
+        if (!this.subscribed) this.subscribed = true
       })
 
     return this.collection.destroy.bind(this.collection)

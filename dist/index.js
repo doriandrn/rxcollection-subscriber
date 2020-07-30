@@ -298,7 +298,7 @@ function render(opts) {
                                     _context2.t1 = _context2.sent;
                                     itemHTML = _context2.t0.from.call(_context2.t0, _context2.t1).join('');
                                     isSelected = this.selectedId && this.selectedId.indexOf(itemId) > -1;
-                                    return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\" ").concat(isSelected ? 'class="sel"' : '', ">").concat(itemHTML, "</li>"));
+                                    return _context2.abrupt("return", "<li data-id=\"".concat(itemId, "\" class=\"").concat(isSelected ? 'sel' : '', "\">").concat(itemHTML, "</li>"));
 
                                   case 9:
                                   case "end":
@@ -690,11 +690,11 @@ var Subscriber = /*#__PURE__*/function () {
 
       this.fetching = true;
       this.collection.find({
-        selector: this.filter
+        selector: this.filter || {}
       }).limit(this.paging).sort(mobx.toJS(this.criteria.sort)).$.subscribe(function (docs) {
-        if (!_this2.subscribed) _this2.subscribed = true;
         _this2.documents = docs;
         _this2.fetching = false;
+        if (!_this2.subscribed) _this2.subscribed = true;
       });
       return this.collection.destroy.bind(this.collection);
     }
