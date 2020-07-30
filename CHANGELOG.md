@@ -1,4 +1,4 @@
-<a name="1.0.9"></a>
+<a name="1.0.10"></a>
 1.0.10 (2020-07-31)
 
 - Removed the hacky delay from the .updates core function;
