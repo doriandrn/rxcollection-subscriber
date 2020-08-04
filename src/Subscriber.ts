@@ -1,6 +1,5 @@
 import { RxCollection, RxDocument } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
-import render, { RenderOptions } from './render/es6'
 
 /**
  * Single RXCollection subscriber interface
@@ -94,7 +93,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     return this.collection.schema.primaryPath || '_id'
   }
 
-  render : (opts : RenderOptions) => void = () => {}
+  // render : (opts : RenderOptions) => void = () => {}
   kill : () => void = () => {}
 
   /**
@@ -142,10 +141,6 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     reaction(() => ({ ...this.criteria }), async () => {
       this.kill = await this.subscribe()
     }, { fireImmediately })
-
-    // if (process && process.browser) {
-    this.render = render.bind(this)
-    // }
   }
 
   @computed get filter () {

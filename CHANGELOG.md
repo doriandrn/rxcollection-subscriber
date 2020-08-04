@@ -1,3 +1,10 @@
+<a name="1.0.12"></a>
+1.0.12 (2020-08-04)
+
+- Temporary removed the render function - will be moved to a separate package;
+- Package updates;
+_ Browser dist;
+
 <a name="1.0.11"></a>
 1.0.11 (2020-07-31)
 
