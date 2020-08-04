@@ -1,6 +1,6 @@
 {
   "name": "rxcollection-subscriber",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Ready to render data-suckers for RxCollections (RxDB)",
   "main": "dist/index.js",
   "repository": "https://github.com/doriandrn/rxcollection-subscriber.git",
@@ -11,7 +11,7 @@
     "build:docs": "rm -R ./dist/docs/ && mkdir ./dist/docs/ && jsdoc2md --files 'src/**/*.ts' --configure jsdoc2md.json > dist/docs/index.md",
     "build:js": "rollup -c",
     "build:examples": "",
-    "build": "yarn build:types && yarn build:js && yarn build:examples && yarn build:docs"
+    "build": "yarn buildtypes && yarn build:js && yarn build:examples && yarn build:docs"
   },
   "dependencies": {
     "mobx": "^5.9.4"
