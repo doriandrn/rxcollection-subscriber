@@ -1,3 +1,9 @@
+<a name="1.0.15"></a>
+1.0.14-15 (2020-09-26)
+
+- Improvements to the subscribe function's performance;
+
+
 <a name="1.0.13"></a>
 1.0.13 (2020-09-26)
 

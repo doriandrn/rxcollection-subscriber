@@ -1,4 +1,4 @@
-import { RxCollection, RxDocument } from 'rxdb'
+import { RxCollection, RxDocument, RxQuery } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
 
 /**
@@ -35,6 +35,8 @@ export type Criteria = {
   sort ?: { [key: string]: number }
   filter ?: { [key: string]: any }
 }
+
+let o
 
 /**
  * Creates a new data sucker for any RxCollection
@@ -88,6 +90,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   name: string = 'unnamed'
   context: string = 'main'
   readonly fields: string[] | 'all' = 'all'
+  query ?: RxQuery
 
   protected get primaryPath () {
     return this.collection.schema.primaryPath || '_id'
@@ -138,13 +141,13 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     }
 
     // Register the reaction on criteria change
-    reaction(() => ({ ...this.criteria }), async () => {
+    reaction(() => ({ ...this.criteria }), () => {
       this.query = this.collection
         .find({ selector: this.filter || {} })
         .limit(this.paging)
         .sort(toJS(this.criteria.sort))
 
-      this.kill = await this.subscribe()
+      this.kill = this.subscribe()
     }, { fireImmediately })
   }
 
@@ -169,13 +172,21 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  protected async subscribe () {
+  protected subscribe () {
+    if (!this.query) return
     this.fetching = true
 
-    this.documents = await this.query.exec()
-    this.fetching = false
-    if (!this.subscribed) this.subscribed = true
-    return this.collection.destroy.bind(this.collection)
+    // Unsubscribe from previous query
+    if (o)
+      o.unsubscribe()
+
+    o = this.query.$.subscribe(docs => {
+      this.documents = docs
+      this.fetching = false
+      if (!this.subscribed) this.subscribed = true
+    })
+
+    return o.unsubscribe.bind(o)
   }
 
   /**
