@@ -346,6 +346,7 @@ describe('RxCollection Subscriber', () => {
         beforeAll(async () => {
           await collection.insert({ name: firstAZname, dummyLevel: 9 })
           await collection.insert({ name: firstZAname, dummyLevel: 9 })
+          tester.criteria.limit = 1
         })
 
         describe('AZ', () => {
@@ -367,14 +368,15 @@ describe('RxCollection Subscriber', () => {
 
         describe('ZA', () => {
           beforeEach(async () => {
+            await tester.updates
             tester.criteria.sort = { name: -1 }
             await tester.updates
           })
 
           test(`first item name is ${firstZAname}`, () => {
-            const { items, ids } = tester
-            expect(items[ids[0]].name).toEqual(firstZAname)
+            expect(tester.items[tester.ids[0]].name).toEqual(firstZAname)
           })
+
         })
       })
     })

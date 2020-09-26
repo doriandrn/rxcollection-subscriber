@@ -139,6 +139,11 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
     // Register the reaction on criteria change
     reaction(() => ({ ...this.criteria }), async () => {
+      this.query = this.collection
+        .find({ selector: this.filter || {} })
+        .limit(this.paging)
+        .sort(toJS(this.criteria.sort))
+
       this.kill = await this.subscribe()
     }, { fireImmediately })
   }
@@ -164,20 +169,12 @@ export default class Subscriber<N extends string> implements RxSubscriber {
    * @param {Criteriu} [criteriu]
    * @memberof Subscriber
    */
-  protected subscribe () {
+  protected async subscribe () {
     this.fetching = true
 
-    this.collection
-      .find({ selector: this.filter || {} })
-      .limit(this.paging)
-      .sort(toJS(this.criteria.sort))
-      .$
-      .subscribe(docs => {
-        this.documents = docs
-        this.fetching = false
-        if (!this.subscribed) this.subscribed = true
-      })
-
+    this.documents = await this.query.exec()
+    this.fetching = false
+    if (!this.subscribed) this.subscribed = true
     return this.collection.destroy.bind(this.collection)
   }
 
