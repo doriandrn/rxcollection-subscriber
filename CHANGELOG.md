@@ -1,3 +1,8 @@
+<a name="1.0.13"></a>
+1.0.13 (2020-09-26)
+
+- Replaced subscribe func with .exec() for testing purposes; Might revert;
+
 <a name="1.0.12"></a>
 1.0.12 (2020-08-04)
 
