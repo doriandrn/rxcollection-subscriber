@@ -1,13 +1,7 @@
-<a name="1.0.15"></a>
-1.0.14-15 (2020-09-26)
+<a name="1.0.16"></a>
+1.0.13-16 (2020-09-26)
 
-- Improvements to the subscribe function's performance;
-
-
-<a name="1.0.13"></a>
-1.0.13 (2020-09-26)
-
-- Replaced subscribe func with .exec() for testing purposes; Might revert;
+- Improvements to the subscribe function's workflow & performance;
 
 <a name="1.0.12"></a>
 1.0.12 (2020-08-04)

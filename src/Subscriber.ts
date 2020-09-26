@@ -1,5 +1,6 @@
 import { RxCollection, RxDocument, RxQuery } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
+import { SubjectSubscriber } from 'rxjs/internal/Subject'
 
 /**
  * Single RXCollection subscriber interface
@@ -35,8 +36,6 @@ export type Criteria = {
   sort ?: { [key: string]: number }
   filter ?: { [key: string]: any }
 }
-
-let o
 
 /**
  * Creates a new data sucker for any RxCollection
@@ -91,6 +90,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   context: string = 'main'
   readonly fields: string[] | 'all' = 'all'
   query ?: RxQuery
+  _sub ?: SubjectSubscriber
 
   protected get primaryPath () {
     return this.collection.schema.primaryPath || '_id'
@@ -177,16 +177,16 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     this.fetching = true
 
     // Unsubscribe from previous query
-    if (o)
-      o.unsubscribe()
+    if (this._sub)
+      this._sub.unsubscribe()
 
-    o = this.query.$.subscribe(docs => {
+    this._sub = this.query.$.subscribe(docs => {
       this.documents = docs
       this.fetching = false
       if (!this.subscribed) this.subscribed = true
     })
 
-    return o.unsubscribe.bind(o)
+    return this._sub.unsubscribe.bind(this._sub)
   }
 
   /**
