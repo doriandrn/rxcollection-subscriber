@@ -1,7 +1,14 @@
 import { RxCollection, RxDocument, RxQuery } from 'rxdb'
-import { action, observable, computed, reaction, toJS } from 'mobx'
+import { action, observable, computed, reaction, toJS, configure, makeObservable } from 'mobx'
 import { SubjectSubscriber } from 'rxjs/internal/Subject'
 
+configure({
+    enforceActions: "never",
+    computedRequiresReaction: true,
+    reactionRequiresObservable: true,
+    observableRequiresReaction: true,
+    disableErrorBoundaries: false,
+})
 /**
  * Single RXCollection subscriber interface
  *
@@ -111,34 +118,36 @@ export default class Subscriber<N extends string> implements RxSubscriber {
   constructor (
     protected collection: RxCollection<N>,
     readonly options ?: SubscriberOptions
-  ) {
-    let fireImmediately: boolean = true
-    this.kill = () => {}
+    ) {
+      let fireImmediately: boolean = true
+      this.kill = () => {}
 
-    if (options) {
-      const { multipleSelect, lazy, criteria, fields, name, context } = options
+      if (options) {
+        const { multipleSelect, lazy, criteria, fields, name, context } = options
 
-      if (multipleSelect)
+        if (multipleSelect)
         this.selectedId = []
 
-      if (lazy)
+        if (lazy)
         fireImmediately = false
 
-      if (criteria)  {
-        Object.keys(criteria).forEach(key => this.criteria[key] = criteria[key])
-      }
+        if (criteria)  {
+          Object.keys(criteria).forEach(key => this.criteria[key] = criteria[key])
+        }
 
-      if (fields) {
-        this.fields = fields
-      }
+        if (fields) {
+          this.fields = fields
+        }
 
-      if (name) {
-        this.name = name
-      }
+        if (name) {
+          this.name = name
+        }
 
-      if (context)
+        if (context)
         this.context = context
-    }
+      }
+
+    makeObservable(this)
 
     // Register the reaction on criteria change
     reaction(() => ({ ...this.criteria }), () => {

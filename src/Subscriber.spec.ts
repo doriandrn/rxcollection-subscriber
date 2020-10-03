@@ -93,6 +93,7 @@ describe('RxCollection Subscriber', () => {
           })
           test(`shows ${limit * 2}`, () => {
             expect(subscriber.ids.length).toEqual(limit * 2)
+            console.log(subscriber.ids)
           })
 
           test(`shows ${limit + limit * 2}`, () => {

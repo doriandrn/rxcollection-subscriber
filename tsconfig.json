@@ -12,6 +12,7 @@
     "declaration": true,
     "target": "es6",
     "module": "esnext",
+    "useDefineForClassFields": true,
     "lib": [
       "esnext",
       "es2015",
