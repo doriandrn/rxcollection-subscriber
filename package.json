@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build:types": "tsc -p tsconfig.json --noEmitOnError",
-    "build:docs": "rm -R ./dist/docs/ && mkdir ./dist/docs/ && jsdoc2md --files 'src/**/*.ts' --configure jsdoc2md.json > dist/docs/index.md",
+    "build:docs": "mkdir ./dist/docs/ && jsdoc2md --files 'src/**/*.ts' --configure jsdoc2md.json > dist/docs/index.md",
     "build:js": "rollup -c",
     "build:examples": "",
     "build": "yarn build:js && yarn build:docs && yarn build:examples && yarn build:types"
