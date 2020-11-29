@@ -116,7 +116,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     this.kill = () => {}
 
     if (options) {
-      const { multipleSelect, lazy, criteria, fields, name, context } = options
+      const { multipleSelect, lazy, criteria, fields, name, context, autoSelectOnCRUD } = options
 
       if (multipleSelect)
         this.selectedId = []
@@ -138,6 +138,12 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
       if (context)
         this.context = context
+
+      // if (autoSelectOnCRUD) {
+      //   collection.postInsert((data, doc) => {
+      //     this.select(doc._id)
+      //   }, false)
+      // }
     }
 
     // Register the reaction on criteria change
@@ -214,8 +220,10 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
       select(id)
     } else {
-      this.selectedId = id !== String(this.selectedId) ? id : ''
+      this.selectedId = id !== String(this.selectedId) ? id : '')
     }
+
+    // refsIds(this.context)
   }
 
   /**
