@@ -225,7 +225,7 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
       select(id)
     } else {
-      this.selectedId = id !== String(this.selectedId) ? id : '')
+      this.selectedId = id !== String(this.selectedId) ? id : ''
     }
 
     // refsIds(this.context)
