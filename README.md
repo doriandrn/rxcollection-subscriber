@@ -1,6 +1,8 @@
 # RxCollection Subscriber
 
-a powerful tool built on top of RxCollection that allows you to efficiently display real-time data coming from a RxDB in any way you can imagine.
+![Build & Publish to npm](https://github.com/doriandrn/rxcollection-subscriber/workflows/Build%20&%20Publish%20to%20npm/badge.svg)
+
+A powerful tool built on top of RxCollection that allows you to efficiently display real-time data coming from a RxDB in any way you can imagine.
 
 Renderless component that reacts on VM (criteria) changes for RxDB's collections (RxCollection).
 
@@ -13,8 +15,6 @@ Renderless component that reacts on VM (criteria) changes for RxDB's collections
 - Selects / Deselects items;
 - Lets you keep hold of IDs you're working with;
 
-- [New] Renders the data in HTML;
-- [New] Can be used as a renderless Vue component (coming soon!)
 
 ## Usage
 
