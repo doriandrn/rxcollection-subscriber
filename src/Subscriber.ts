@@ -158,7 +158,10 @@ export default class Subscriber<N extends string> implements RxSubscriber {
     }, { fireImmediately })
 
     deepObserve(this.criteria.filter, (change) => {
-      this.criteria.filter = change
+      if (process.env.NODE_ENV === 'development')
+        console.log(name, 'filter updated', change)
+
+      this.criteria.filter = change.newValue
     })
   }
 
