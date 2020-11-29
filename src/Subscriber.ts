@@ -1,6 +1,7 @@
 import { RxCollection, RxDocument, RxQuery } from 'rxdb'
 import { action, observable, computed, reaction, toJS } from 'mobx'
 import { SubjectSubscriber } from 'rxjs/internal/Subject'
+import { deepObserve } from 'mobx-utils'
 
 /**
  * Single RXCollection subscriber interface
@@ -155,6 +156,10 @@ export default class Subscriber<N extends string> implements RxSubscriber {
 
       this.kill = this.subscribe()
     }, { fireImmediately })
+
+    deepObserve(this.criteria.filter, (change) => {
+      this.criteria.filter = change
+    })
   }
 
   @computed get filter () {
